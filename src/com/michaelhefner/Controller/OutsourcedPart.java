@@ -91,8 +91,26 @@ public class OutsourcedPart  implements Initializable {
         isValid &= checkForEmptyField(allFields);
         isValid &= checkForIntegerField(integerFields);
         isValid &= checkForDoubleField(doubleFields);
-        System.out.println("Check " + isValid);
+        isValid &= checkMinMax(txtMin, txtMax);
+        return isValid;
+    }
 
+    private boolean checkMinMax(TextField min, TextField max){
+        boolean isValid = true;
+        if(!txtMin.getText().isEmpty() && !txtMax.getText().isEmpty()){
+            if (Integer.parseInt(txtMax.getText()) < Integer.parseInt(txtMin.getText())){
+                txtMin.setStyle(EMPTY_ERROR);
+                txtMax.setStyle(EMPTY_ERROR);
+                isValid = false;
+            } else {
+                txtMin.setStyle(NO_ERROR);
+                txtMax.setStyle(NO_ERROR);
+            }
+        } else {
+            txtMin.setStyle(EMPTY_ERROR);
+            txtMax.setStyle(EMPTY_ERROR);
+            isValid = false;
+        }
         return isValid;
     }
 
@@ -106,7 +124,6 @@ public class OutsourcedPart  implements Initializable {
                 field.setStyle(NO_ERROR);
             }
         }
-        System.out.println("Check for empty" + isValid);
         return isValid;
     }
 
@@ -126,7 +143,6 @@ public class OutsourcedPart  implements Initializable {
                 isValid = false;
             }
         }
-        System.out.println("Check for integer" + isValid);
         return isValid;
     }
 
@@ -146,7 +162,6 @@ public class OutsourcedPart  implements Initializable {
                 isValid = false;
             }
         }
-        System.out.println("Check for double" + isValid);
         return isValid;
     }
 

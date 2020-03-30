@@ -58,7 +58,6 @@ public class Inventory {
     }
 
     public static ObservableList<Part> lookupPart(String partName){
-        System.out.println(allParts.indexOf(partName));
         return allParts;
     }
 
@@ -68,24 +67,49 @@ public class Inventory {
     }
 
     public static void updatePart(int index, Part selectedPart){
-        System.out.println(lookupPart(selectedPart.getId()));
-        if(index > -1 && index < allParts.size()) {
-            allParts.set(index, selectedPart);
-        }else {
-            System.out.println("index out of bounds. index: " + index + " allparts size: " + allParts.size());
+        try {
+            lookupPart(index);
+
+            if (index > -1 && index < allParts.size()) {
+                allParts.set(index, selectedPart);
+            } else {
+                System.out.println("index out of bounds. index: " + index + " allparts size: " + allParts.size());
+            }
+        } catch (NullPointerException e){
+            System.out.println("Part at index " + index + " does not exist.");
         }
     }
 
     public static void updateProduct(int index, Product newProduct){
-        allProducts.set(index, newProduct);
+        try {
+            lookupProduct(index);
+
+            if (index > -1 && index < allProducts.size()) {
+                allProducts.set(index, newProduct);
+            } else {
+                System.out.println("index out of bounds. index: " + index + " allProducts size: " + allProducts.size());
+            }
+        } catch (NullPointerException e){
+            System.out.println("Part at index " + index + " does not exist.");
+        }
     }
 
     public static boolean deletePart(Part selectedPart){
-        return allParts.remove(selectedPart);
+        try{
+            lookupPart(selectedPart.getName());
+            return allParts.remove(selectedPart);
+        } catch (Exception e){
+            return false;
+        }
     }
 
     public static boolean deleteProduct(Product selectedProduct){
-        return allProducts.remove(selectedProduct);
+        try{
+            lookupPart(selectedProduct.getName());
+            return allProducts.remove(selectedProduct);
+        } catch (Exception e){
+            return false;
+        }
     }
 
     public static ObservableList<Part> getAIIParts(){
