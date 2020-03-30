@@ -1,6 +1,65 @@
 /*************************************************************************
  Michael Hefner
  C482 - Software 1
+ I. User Interface
+
+
+ Done I. User Interface
+
+ Done B.  An add part screen, showing the following controls:
+
+ Done •  radio buttons for “In-House” and “Outsourced” parts
+
+ Done •  buttons for “Save” and “Cancel”
+
+ Done •  text fields for ID, name, inventory level, price, max and min values, and company name or machine ID
+
+ Done •  labels for ID, name, inventory level, price/cost, max and min values, the application title, and company name or machine ID
+
+ Done C.  A modify part screen, with fields that populate with presaved data, showing the following controls:
+
+ Done •  radio buttons for “In-House” and “Outsourced” parts
+
+ Done  •  buttons for “Save” and “Cancel”
+
+ Done •  text fields for ID, name, inventory level, price, max and min values, and company name or machine ID
+
+ Done •  labels for ID, name, inventory level, price, max and min values, the application title, and company name or machine ID
+
+ Done H.  Add the following functionalities to the part screens, using the methods provided in the attached “UML Class Diagram”:
+
+ Done 1.  “Add Part” screen
+
+ Done •  select “In-House” or “Outsourced”
+
+ Done •  enter name, inventory level, price, max and min values, and company name or machine ID
+
+ Done •  save the data and then redirect to the main screen
+
+ Done •  cancel or exit out of this screen and go back to the main screen
+
+ Done 2.  “Modify Part” screen
+
+ Done •  select “In-House” or “Outsourced”
+
+ Done •  modify or change data values
+
+ Done •  save modifications to the data and then redirect to the main screen
+
+ Done •  cancel or exit out of this screen and go back to the main screen
+
+ Done J.  Write code to implement exception controls with custom error messages for one requirement out of each of the following sets (pick one from each):
+
+ Done 1.  Set 1
+
+ Done •  entering an inventory value that exceeds the minimum or maximum value for that part or product
+
+ Done •  preventing the minimum field from having a value above the maximum field
+
+ Done •  preventing the maximum field from having a value below the minimum field
+
+ Done •  ensuring that a product must always have at least one part
+
  *************************************************************************/
 
 
@@ -15,13 +74,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class InHousePart implements Initializable {
@@ -59,6 +117,7 @@ public class InHousePart implements Initializable {
         TextField[] allFields = {txtPrice,txtID,txtInv,txtMachineID,txtMax,txtMin,txtName,txtPrice};
         TextField[] integerFields = {txtID,txtInv,txtMachineID,txtMax,txtMin};
         TextField[] doubleFields = {txtPrice};
+        Stage stage = (Stage) txtMin.getScene().getWindow();
 
         if(validateFields(allFields, integerFields, doubleFields)){
             InHouse newInHousePart = new InHouse(Integer.parseInt(txtID.getText()),
@@ -70,19 +129,26 @@ public class InHousePart implements Initializable {
                     Integer.parseInt(txtMachineID.getText()));
             if(partIDToModify >= 0){
                 Inventory.updatePart(partIDToModify, newInHousePart);
-                closeWindow();
+                stage.close();
             } else if (partIDToModify == -1){
                 Inventory.addPart(newInHousePart);
-                System.out.println("added inhouse");
-                closeWindow();
+                stage.close();
             }
         }
     }
 
     @FXML
     private void closeWindow(){
-        Stage stage = (Stage) btnCancel.getScene().getWindow();
-        stage.close();
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Cancel");
+        alert.setHeaderText("You are about to close this window");
+        alert.setContentText("Select OK to proceed");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.OK) {
+            Stage stage = (Stage) btnCancel.getScene().getWindow();
+            stage.close();
+        }
     }
 
     private boolean validateFields(TextField[] allFields,
@@ -92,29 +158,63 @@ public class InHousePart implements Initializable {
         isValid &= checkForEmptyField(allFields);
         isValid &= checkForIntegerField(integerFields);
         isValid &= checkForDoubleField(doubleFields);
-        isValid &= checkMinMax(txtMin, txtMax);
+        isValid &= checkForMinMax(txtMin, txtMax);
+        isValid &= checkForMinInv(txtInv);
+        isValid &= checkForInvMax(txtInv, txtMax);
         return isValid;
     }
 
-    private boolean checkMinMax(TextField min, TextField max){
+    private boolean checkForInvMax(TextField inv, TextField max){
         boolean isValid = true;
-        if(!txtMin.getText().isEmpty() && !txtMax.getText().isEmpty()){
-            if (Integer.parseInt(txtMax.getText()) < Integer.parseInt(txtMin.getText())){
-                txtMin.setStyle(EMPTY_ERROR);
-                txtMax.setStyle(EMPTY_ERROR);
+        if (!inv.getText().isEmpty() && !max.getText().isEmpty()){
+            if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())){
+                inv.setStyle(EMPTY_ERROR);
+                max.setStyle(EMPTY_ERROR);
                 isValid = false;
             } else {
-                txtMin.setStyle(NO_ERROR);
-                txtMax.setStyle(NO_ERROR);
+                inv.setStyle(NO_ERROR);
+                max.setStyle(NO_ERROR);
             }
         } else {
-            txtMin.setStyle(EMPTY_ERROR);
-            txtMax.setStyle(EMPTY_ERROR);
+            inv.setStyle(EMPTY_ERROR);
+            max.setStyle(EMPTY_ERROR);
             isValid = false;
         }
         return isValid;
     }
-
+    private boolean checkForMinInv(TextField inv){
+        boolean isValid = true;
+        if (!inv.getText().isEmpty()){
+            if(Integer.parseInt(inv.getText()) < 1){
+                inv.setStyle(EMPTY_ERROR);
+                isValid = false;
+            } else {
+                inv.setStyle(NO_ERROR);
+            }
+        } else {
+            inv.setStyle(EMPTY_ERROR);
+            isValid = false;
+        }
+        return isValid;
+    }
+    private boolean checkForMinMax(TextField min, TextField max){
+        boolean isValid = true;
+        if(!min.getText().isEmpty() && !max.getText().isEmpty()){
+            if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())){
+                min.setStyle(EMPTY_ERROR);
+                max.setStyle(EMPTY_ERROR);
+                isValid = false;
+            } else {
+                min.setStyle(NO_ERROR);
+                min.setStyle(NO_ERROR);
+            }
+        } else {
+            min.setStyle(EMPTY_ERROR);
+            max.setStyle(EMPTY_ERROR);
+            isValid = false;
+        }
+        return isValid;
+    }
     private boolean checkForEmptyField(TextField[] textFields){
         boolean isValid = true;
         for(TextField field : textFields){
@@ -185,7 +285,7 @@ public class InHousePart implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        txtID.setText(Integer.toString(Inventory.getAIIParts().size()));
+        txtID.setText(Integer.toString(Inventory.lookupPart(Inventory.getAIIParts().size() - 1).getId() + 1));
         txtID.setDisable(true);
         rbOutsource.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -200,7 +300,8 @@ public class InHousePart implements Initializable {
                     Stage outsourcePartStage = new Stage();
                     outsourcePartStage.setScene(new Scene(root));
                     outsourcePartStage.show();
-                    closeWindow();
+                    Stage stage = (Stage) btnCancel.getScene().getWindow();
+                    stage.close();
                 } catch (Exception e){
                     System.out.println(e);
                 }

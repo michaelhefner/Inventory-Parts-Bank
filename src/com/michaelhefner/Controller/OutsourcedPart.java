@@ -1,36 +1,33 @@
 /*************************************************************************
  Michael Hefner
  C482 - Software 1
+
  *************************************************************************/
 
 package com.michaelhefner.Controller;
 
+import com.michaelhefner.Model.InHouse;
 import com.michaelhefner.Model.Inventory;
 import com.michaelhefner.Model.Outsourced;
+import com.michaelhefner.Model.Part;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class OutsourcedPart  implements Initializable {
 
-    final private String EMPTY_ERROR =
-            "-fx-background-color: rgba(255, 0, 0, 0.1);" +
-                    " -fx-border-color: rgba(255,0,0,1);";
-
-    final private String NO_ERROR =
-            "-fx-background-color: rgba(225, 255, 255, 1);";
     private int partIDToModify = -1;
     @FXML
     private Text txtHeading;
@@ -53,35 +50,75 @@ public class OutsourcedPart  implements Initializable {
     @FXML
     private Button btnCancel;
 
+    final private String EMPTY_ERROR =
+            "-fx-background-color: rgba(255, 0, 0, 0.1);" +
+                    " -fx-border-color: rgba(255,0,0,1);";
+
+    final private String NO_ERROR =
+            "-fx-background-color: rgba(225, 255, 255, 1);";
+
     @FXML
     private void onSaveClicked(ActionEvent actionEvent){
         TextField[] allFields = {txtPrice,txtID,txtInv,txtCompanyName,txtMax,txtMin,txtName,txtPrice};
-        TextField[] integerFields = {txtID,txtInv,txtMax,txtMin};
+        TextField[] integerFields = {txtID,txtInv,txtCompanyName,txtMax,txtMin};
         TextField[] doubleFields = {txtPrice};
+        Stage stage = (Stage) txtMin.getScene().getWindow();
 
         if(validateFields(allFields, integerFields, doubleFields)){
-            Outsourced newOutsourcedPart = new Outsourced(Integer.parseInt(txtID.getText()),
+            InHouse newInHousePart = new InHouse(Integer.parseInt(txtID.getText()),
                     txtName.getText(),
                     Double.parseDouble(txtPrice.getText()),
                     Integer.parseInt(txtInv.getText()),
                     Integer.parseInt(txtMin.getText()),
                     Integer.parseInt(txtMin.getText()),
-                    txtCompanyName.getText());
+                    Integer.parseInt(txtCompanyName.getText()));
             if(partIDToModify >= 0){
-                Inventory.updatePart(partIDToModify, newOutsourcedPart);
-                closeWindow();
+                Inventory.updatePart(partIDToModify, newInHousePart);
+                stage.close();
             } else if (partIDToModify == -1){
-                Inventory.addPart(newOutsourcedPart);
-                System.out.println("added outsourced");
-                closeWindow();
+                Inventory.addPart(newInHousePart);
+                stage.close();
             }
         }
     }
 
     @FXML
     private void closeWindow(){
-        Stage stage = (Stage) btnCancel.getScene().getWindow();
-        stage.close();
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Cancel");
+        alert.setHeaderText("You are about to close this window");
+        alert.setContentText("Select OK to proceed");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.OK) {
+            Stage stage = (Stage) btnCancel.getScene().getWindow();
+            stage.close();
+        }
+    }
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        txtID.setText(Integer.toString(Inventory.lookupPart(Inventory.getAIIParts().size() - 1).getId() + 1));
+        txtID.setDisable(true);
+        rbInHouse.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
+                System.out.println(t1);
+                try {
+                    FXMLLoader loader = new FXMLLoader();
+                    loader.setLocation(getClass().getResource("../View/InHousePart.fxml"));
+                    FlowPane root = loader.load();
+                    InHousePart inHousePart = loader.getController();
+                    inHousePart.isModify(partIDToModify);
+                    Stage inHousePartStage = new Stage();
+                    inHousePartStage.setScene(new Scene(root));
+                    inHousePartStage.show();
+                    Stage stage = (Stage) btnCancel.getScene().getWindow();
+                    stage.close();
+                } catch (Exception e){
+                    System.out.println(e);
+                }
+            }
+        });
     }
 
     private boolean validateFields(TextField[] allFields,
@@ -91,24 +128,60 @@ public class OutsourcedPart  implements Initializable {
         isValid &= checkForEmptyField(allFields);
         isValid &= checkForIntegerField(integerFields);
         isValid &= checkForDoubleField(doubleFields);
-        isValid &= checkMinMax(txtMin, txtMax);
+        isValid &= checkForMinMax(txtMin, txtMax);
+        isValid &= checkForMinInv(txtInv);
+        isValid &= checkForInvMax(txtInv, txtMax);
         return isValid;
     }
 
-    private boolean checkMinMax(TextField min, TextField max){
+    private boolean checkForInvMax(TextField inv, TextField max){
         boolean isValid = true;
-        if(!txtMin.getText().isEmpty() && !txtMax.getText().isEmpty()){
-            if (Integer.parseInt(txtMax.getText()) < Integer.parseInt(txtMin.getText())){
-                txtMin.setStyle(EMPTY_ERROR);
-                txtMax.setStyle(EMPTY_ERROR);
+        if (!inv.getText().isEmpty() && !max.getText().isEmpty()){
+            if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())){
+                inv.setStyle(EMPTY_ERROR);
+                max.setStyle(EMPTY_ERROR);
                 isValid = false;
             } else {
-                txtMin.setStyle(NO_ERROR);
-                txtMax.setStyle(NO_ERROR);
+                inv.setStyle(NO_ERROR);
+                max.setStyle(NO_ERROR);
             }
         } else {
-            txtMin.setStyle(EMPTY_ERROR);
-            txtMax.setStyle(EMPTY_ERROR);
+            inv.setStyle(EMPTY_ERROR);
+            max.setStyle(EMPTY_ERROR);
+            isValid = false;
+        }
+        return isValid;
+    }
+
+    private boolean checkForMinInv(TextField inv){
+        boolean isValid = true;
+        if (!inv.getText().isEmpty()){
+            if(Integer.parseInt(inv.getText()) < 1){
+                inv.setStyle(EMPTY_ERROR);
+                isValid = false;
+            } else {
+                inv.setStyle(NO_ERROR);
+            }
+        } else {
+            inv.setStyle(EMPTY_ERROR);
+            isValid = false;
+        }
+        return isValid;
+    }
+    private boolean checkForMinMax(TextField min, TextField max){
+        boolean isValid = true;
+        if(!min.getText().isEmpty() && !max.getText().isEmpty()){
+            if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())){
+                min.setStyle(EMPTY_ERROR);
+                max.setStyle(EMPTY_ERROR);
+                isValid = false;
+            } else {
+                min.setStyle(NO_ERROR);
+                min.setStyle(NO_ERROR);
+            }
+        } else {
+            min.setStyle(EMPTY_ERROR);
+            max.setStyle(EMPTY_ERROR);
             isValid = false;
         }
         return isValid;
@@ -180,29 +253,4 @@ public class OutsourcedPart  implements Initializable {
         }
     }
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        txtID.setText(Integer.toString(Inventory.getAIIParts().size()));
-        txtID.setDisable(true);
-        rbInHouse.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
-                System.out.println(t1);
-                try {
-                    FXMLLoader loader = new FXMLLoader();
-                    loader.setLocation(getClass().getResource("../View/InHousePart.fxml"));
-                    FlowPane root = loader.load();
-                    InHousePart inHousePart = loader.getController();
-                    inHousePart.isModify(partIDToModify);
-                    Stage inHousePartStage = new Stage();
-                    inHousePartStage.setScene(new Scene(root));
-                    inHousePartStage.show();
-                    closeWindow();
-                } catch (Exception e){
-                    System.out.println(e);
-                }
-//
-            }
-        });
-    }
 }
