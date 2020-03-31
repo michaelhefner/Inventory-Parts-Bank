@@ -140,8 +140,8 @@ public class AddProduct implements Initializable {
         for (Part part : partsToAddToProduct) {
             totalCost += part.getPrice();
         }
-        if ((partSelectedToAdd >= 0)
-                && (totalCost + Objects.requireNonNull(Inventory.lookupPart(partSelectedToAdd)).getPrice()) <= Double.parseDouble(txtPrice.getText())) {
+        if ((partSelectedToAdd >= 0 && !txtPrice.getText().isEmpty())
+                && (totalCost + (Inventory.lookupPart(partSelectedToAdd)).getPrice()) <= Double.parseDouble(txtPrice.getText())) {
             partsToAddToProduct.add(Inventory.lookupPart(partSelectedToAdd));
             txtPrice.setStyle(NO_ERROR);
             tblAddedParts.setStyle(NO_ERROR);
@@ -316,7 +316,10 @@ public class AddProduct implements Initializable {
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        txtID.setText(Integer.toString(Inventory.lookupProduct(Inventory.getAIIProducts().size() - 1).getId() + 1));
+        int currentIndex = 0;
+        if (Inventory.getAIIProducts().size() > 0)
+            currentIndex = (Inventory.lookupProduct(Inventory.getAIIProducts().size() - 1)).getId() + 1;
+        txtID.setText(Integer.toString(currentIndex));
         txtID.setDisable(true);
 
         allPartsObservable.addAll(Inventory.getAIIParts());

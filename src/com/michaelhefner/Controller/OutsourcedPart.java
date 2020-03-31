@@ -98,18 +98,21 @@ public class OutsourcedPart implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        txtID.setText(Integer.toString(Inventory.lookupPart(Inventory.getAIIParts().size() - 1).getId() + 1));
+        int currentIndex = 0;
+        if (Inventory.getAIIParts().size() > 0)
+            currentIndex = (Inventory.lookupPart(Inventory.getAIIParts().size() - 1)).getId() + 1;
+        txtID.setText(Integer.toString(currentIndex));
         txtID.setDisable(true);
         rbInHouse.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
-                System.out.println(t1);
                 try {
                     FXMLLoader loader = new FXMLLoader();
                     loader.setLocation(getClass().getResource("../View/InHousePart.fxml"));
                     FlowPane root = loader.load();
                     InHousePart inHousePart = loader.getController();
-                    inHousePart.isModify(partIDToModify);
+                    if (partIDToModify != null)
+                        inHousePart.isModify(partIDToModify);
                     Stage inHousePartStage = new Stage();
                     inHousePartStage.setScene(new Scene(root));
                     inHousePartStage.show();
