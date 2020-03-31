@@ -6,6 +6,7 @@
 
 package com.michaelhefner.Model;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Product {
@@ -19,7 +20,13 @@ public class Product {
 
 
     public Product(int id,String name, double price,int stock,int min,int max){
-
+        this.setId(id);
+        this.setMax(max);
+        this.setMin(min);
+        this.setName(name);
+        this.setPrice(price);
+        this.setStock(stock);
+        associatedParts = FXCollections.observableArrayList();
     }
 
     public int getId() {
@@ -76,6 +83,16 @@ public class Product {
 
     public void setAssociatedParts(ObservableList<Part> associatedParts) {
         this.associatedParts = associatedParts;
+    }
+
+    public void addAssociatedPart(Part part){
+        associatedParts.add(part);
+    }
+    public boolean deleteAssociatedPart(Part selectedAspart){
+        return associatedParts.remove(selectedAspart);
+    }
+    public ObservableList<Part> getAllAssociatedParts(){
+        return associatedParts;
     }
 
 }

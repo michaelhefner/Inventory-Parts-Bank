@@ -60,10 +60,7 @@
 
 package com.michaelhefner.Controller;
 
-import com.michaelhefner.Model.InHouse;
-import com.michaelhefner.Model.Inventory;
-import com.michaelhefner.Model.Outsourced;
-import com.michaelhefner.Model.Part;
+import com.michaelhefner.Model.*;
 import javafx.application.Platform;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.value.ChangeListener;
@@ -88,7 +85,8 @@ import java.util.function.Predicate;
 
 public class MainPage implements Initializable {
     private boolean partSelectedIsInhouse = true;
-    private int partSelected = -1;
+    private Part partSelected;
+    private int productSelected = -1;
     @FXML
     private TableView<Part> tblParts;
 
@@ -103,11 +101,26 @@ public class MainPage implements Initializable {
 
     @FXML
     private TableColumn<Part, String> clmPrice;
+    @FXML
+    private TableView<Product> tblProduct;
+
+    @FXML
+    private TableColumn<Product, String> clmProductID;
+
+    @FXML
+    private TableColumn<Product, String> clmProductName;
+
+    @FXML
+    private TableColumn<Product, String> clmProductInvLevel;
+
+    @FXML
+    private TableColumn<Product, String> clmProductPrice;
 
     @FXML
     private TextField txtSearchPart;
 
     private FilteredList<Part> filteredList;
+    private FilteredList<Product> productFilteredList;
 
     private Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 
@@ -140,11 +153,10 @@ public class MainPage implements Initializable {
     }
 
     @FXML
-    private void onModifyClicked(ActionEvent actionEvent) throws IOException {
+    private void onModifyPartClicked(ActionEvent actionEvent) throws IOException {
+        FXMLLoader loader = new FXMLLoader();
 
         if (partSelectedIsInhouse) {
-            FXMLLoader loader = new FXMLLoader();
-
             loader.setLocation(getClass().getResource("../View/InHousePart.fxml"));
             FlowPane root = loader.load();
             InHousePart inHousePart = loader.getController();
@@ -153,8 +165,6 @@ public class MainPage implements Initializable {
             inHousePartStage.setScene(new Scene(root));
             inHousePartStage.show();
         } else {
-            FXMLLoader loader = new FXMLLoader();
-
             loader.setLocation(getClass().getResource("../View/OutsourcedPart.fxml"));
             FlowPane root = loader.load();
             OutsourcedPart outsourcedPart = loader.getController();
@@ -163,6 +173,18 @@ public class MainPage implements Initializable {
             outsourcePartStage.setScene(new Scene(root));
             outsourcePartStage.show();
         }
+    }
+
+    @FXML
+    private void onModifyProductClicked(ActionEvent actionEvent) throws IOException {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("../View/AddProduct.fxml"));
+        FlowPane root = loader.load();
+        AddProduct addProduct = loader.getController();
+        addProduct.isModify(productSelected);
+        Stage addProductStage = new Stage();
+        addProductStage.setScene(new Scene(root));
+        addProductStage.show();
     }
 
     @FXML
@@ -186,15 +208,14 @@ public class MainPage implements Initializable {
 
     @FXML
     public void onDeletePart(ActionEvent actionEvent) {
-        if (partSelected != -1) {
-            Part part = Inventory.lookupPart(partSelected);
+        if (partSelected != null) {
             alert.setTitle("Delete");
-            alert.setHeaderText("You are about to delete " + part.getName());
+            alert.setHeaderText("You are about to delete " + partSelected.getName());
             alert.setContentText("Are you sure you would like to proceed?");
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.get() == ButtonType.OK) {
-                Inventory.deletePart(Inventory.lookupPart(partSelected));
+                Inventory.deletePart(partSelected);
             }
         }
     }
@@ -207,10 +228,19 @@ public class MainPage implements Initializable {
         InHouse part = new InHouse(0, "testing", 1.0, 1, 0, 10, 12);
         InHouse part2 = new InHouse(1, "one", 1.0, 1, 0, 10, 1234);
         Outsourced part3 = new Outsourced(2, "outsourced", 1.0, 1, 0, 10, "comp");
+        Product product1 = new Product(0, "name", 1.0, 12, 1, 10);
+        Product product2 = new Product(1, "testing product", 1.0, 12, 1, 10);
+        Product product3 = new Product(2, "one", 100.0, 12, 1, 10);
 
+        product3.addAssociatedPart(part);
+        product3.addAssociatedPart(part2);
         Inventory.addPart(part);
         Inventory.addPart(part2);
         Inventory.addPart(part3);
+        Inventory.addProduct(product1);
+        Inventory.addProduct(product2);
+        Inventory.addProduct(product3);
+
         /*******
          * End Demo Data
          *
@@ -229,17 +259,42 @@ public class MainPage implements Initializable {
             }
         });
 
-//        tblParts.setItems(Inventory.getAIIParts());
         tblParts.setItems(filteredList);
-
-        tblParts.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+        tblParts.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Part>() {
             @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
-                try {
-                    partSelectedIsInhouse = (Inventory.lookupPart(t1.intValue()).getClass() == InHouse.class);
-                    partSelected = t1.intValue();
-                } catch (NullPointerException e) {
-                    System.out.println(e);
+            public void changed(ObservableValue<? extends Part> observableValue, Part part, Part t1) {
+                if(t1 != null){
+                    if (Inventory.lookupPart(t1.getId()).getClass() == InHouse.class){
+                        partSelectedIsInhouse = true;
+                    } else {
+                        partSelectedIsInhouse = false;
+                    }
+
+                    partSelected = Inventory.lookupPart(t1.getId());
+                }
+            }
+        });
+
+        clmProductID.setCellValueFactory(new PropertyValueFactory<Product, String>("id"));
+        clmProductName.setCellValueFactory(new PropertyValueFactory<Product, String>("name"));
+        clmProductPrice.setCellValueFactory(new PropertyValueFactory<Product, String>("price"));
+        clmProductInvLevel.setCellValueFactory(new PropertyValueFactory<Product, String>("stock"));
+
+
+        productFilteredList = new FilteredList<Product>(Inventory.getAIIProducts(), new Predicate<Product>() {
+            @Override
+            public boolean test(Product product) {
+                return true;
+            }
+        });
+
+        tblProduct.setItems(productFilteredList);
+
+        tblProduct.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Product>() {
+            @Override
+            public void changed(ObservableValue<? extends Product> observableValue, Product product, Product t1) {
+                if (t1 != null){
+                    productSelected = t1.getId();
                 }
             }
         });

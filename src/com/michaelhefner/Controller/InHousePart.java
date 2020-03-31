@@ -67,6 +67,8 @@ package com.michaelhefner.Controller;
 
 import com.michaelhefner.Model.InHouse;
 import com.michaelhefner.Model.Inventory;
+import com.michaelhefner.Model.Outsourced;
+import com.michaelhefner.Model.Part;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -90,7 +92,7 @@ public class InHousePart implements Initializable {
 
     final private String NO_ERROR =
             "-fx-background-color: rgba(225, 255, 255, 1);";
-    private int partIDToModify = -1;
+    private Part partIDToModify;
     @FXML
     private Text txtHeading;
     @FXML
@@ -125,12 +127,12 @@ public class InHousePart implements Initializable {
                     Double.parseDouble(txtPrice.getText()),
                     Integer.parseInt(txtInv.getText()),
                     Integer.parseInt(txtMin.getText()),
-                    Integer.parseInt(txtMin.getText()),
+                    Integer.parseInt(txtMax.getText()),
                     Integer.parseInt(txtMachineID.getText()));
-            if(partIDToModify >= 0){
-                Inventory.updatePart(partIDToModify, newInHousePart);
+            if(partIDToModify != null){
+                Inventory.updatePart(partIDToModify.getId(), newInHousePart);
                 stage.close();
-            } else if (partIDToModify == -1){
+            } else {
                 Inventory.addPart(newInHousePart);
                 stage.close();
             }
@@ -266,22 +268,21 @@ public class InHousePart implements Initializable {
         return isValid;
     }
 
-
-    public void isModify(int partToModify){
-        if(partToModify != -1){
-            this.partIDToModify = partToModify;
-            InHouse inHouse = (InHouse) Inventory.lookupPart(partToModify);
-            txtID.setText(Integer.toString(inHouse.getId()));
-            txtName.setText(inHouse.getName());
-            txtInv.setText(Integer.toString(inHouse.getStock()));
-            txtPrice.setText(Double.toString(inHouse.getPrice()));
-            txtMax.setText(Integer.toString(inHouse.getMax()));
-            txtMin.setText(Integer.toString(inHouse.getMin()));
-            txtMachineID.setText(Integer.toString(inHouse.getMachineId()));
+    public void isModify(Part partToModify) {
+        if (partToModify != null) {
+            partIDToModify = partToModify;
+            txtID.setText(Integer.toString(partToModify.getId()));
+            txtName.setText(partToModify.getName());
+            txtInv.setText(Integer.toString(partToModify.getStock()));
+            txtPrice.setText(Double.toString(partToModify.getPrice()));
+            txtMax.setText(Integer.toString(partToModify.getMax()));
+            txtMin.setText(Integer.toString(partToModify.getMin()));
+            if (Inventory.lookupPart(partToModify.getId()).getClass() == InHouse.class) {
+                txtMachineID.setText(Integer.toString(((InHouse) partToModify).getMachineId()));
+            }
             txtHeading.setText("Modify Part");
         }
     }
-
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -293,9 +294,11 @@ public class InHousePart implements Initializable {
                 System.out.println(t1);
                 try {
                     FXMLLoader loader = new FXMLLoader();
+                    System.out.println(loader);
                     loader.setLocation(getClass().getResource("../View/OutsourcedPart.fxml"));
                     FlowPane root = loader.load();
                     OutsourcedPart outsourcedPart = loader.getController();
+                    System.out.println(partIDToModify);
                     outsourcedPart.isModify(partIDToModify);
                     Stage outsourcePartStage = new Stage();
                     outsourcePartStage.setScene(new Scene(root));

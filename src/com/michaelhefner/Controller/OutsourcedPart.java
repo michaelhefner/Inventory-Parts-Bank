@@ -1,7 +1,6 @@
 /*************************************************************************
  Michael Hefner
  C482 - Software 1
-
  *************************************************************************/
 
 package com.michaelhefner.Controller;
@@ -22,13 +21,14 @@ import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+
 import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-public class OutsourcedPart  implements Initializable {
+public class OutsourcedPart implements Initializable {
 
-    private int partIDToModify = -1;
+    private Part partIDToModify;
     @FXML
     private Text txtHeading;
     @FXML
@@ -58,32 +58,32 @@ public class OutsourcedPart  implements Initializable {
             "-fx-background-color: rgba(225, 255, 255, 1);";
 
     @FXML
-    private void onSaveClicked(ActionEvent actionEvent){
-        TextField[] allFields = {txtPrice,txtID,txtInv,txtCompanyName,txtMax,txtMin,txtName,txtPrice};
-        TextField[] integerFields = {txtID,txtInv,txtCompanyName,txtMax,txtMin};
+    private void onSaveClicked(ActionEvent actionEvent) {
+        TextField[] allFields = {txtPrice, txtID, txtInv, txtCompanyName, txtMax, txtMin, txtName, txtPrice};
+        TextField[] integerFields = {txtID, txtInv, txtMax, txtMin};
         TextField[] doubleFields = {txtPrice};
         Stage stage = (Stage) txtMin.getScene().getWindow();
 
-        if(validateFields(allFields, integerFields, doubleFields)){
-            InHouse newInHousePart = new InHouse(Integer.parseInt(txtID.getText()),
+        if (validateFields(allFields, integerFields, doubleFields)) {
+            Outsourced outsourcedPart = new Outsourced(Integer.parseInt(txtID.getText()),
                     txtName.getText(),
                     Double.parseDouble(txtPrice.getText()),
                     Integer.parseInt(txtInv.getText()),
                     Integer.parseInt(txtMin.getText()),
-                    Integer.parseInt(txtMin.getText()),
-                    Integer.parseInt(txtCompanyName.getText()));
-            if(partIDToModify >= 0){
-                Inventory.updatePart(partIDToModify, newInHousePart);
+                    Integer.parseInt(txtMax.getText()),
+                    txtCompanyName.getText());
+            if (partIDToModify != null) {
+                Inventory.updatePart(partIDToModify.getId(), outsourcedPart);
                 stage.close();
-            } else if (partIDToModify == -1){
-                Inventory.addPart(newInHousePart);
+            } else {
+                Inventory.addPart(outsourcedPart);
                 stage.close();
             }
         }
     }
 
     @FXML
-    private void closeWindow(){
+    private void closeWindow() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Cancel");
         alert.setHeaderText("You are about to close this window");
@@ -95,6 +95,7 @@ public class OutsourcedPart  implements Initializable {
             stage.close();
         }
     }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         txtID.setText(Integer.toString(Inventory.lookupPart(Inventory.getAIIParts().size() - 1).getId() + 1));
@@ -114,7 +115,7 @@ public class OutsourcedPart  implements Initializable {
                     inHousePartStage.show();
                     Stage stage = (Stage) btnCancel.getScene().getWindow();
                     stage.close();
-                } catch (Exception e){
+                } catch (Exception e) {
                     System.out.println(e);
                 }
             }
@@ -123,7 +124,7 @@ public class OutsourcedPart  implements Initializable {
 
     private boolean validateFields(TextField[] allFields,
                                    TextField[] integerFields,
-                                   TextField[] doubleFields){
+                                   TextField[] doubleFields) {
         boolean isValid = true;
         isValid &= checkForEmptyField(allFields);
         isValid &= checkForIntegerField(integerFields);
@@ -134,10 +135,10 @@ public class OutsourcedPart  implements Initializable {
         return isValid;
     }
 
-    private boolean checkForInvMax(TextField inv, TextField max){
+    private boolean checkForInvMax(TextField inv, TextField max) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty() && !max.getText().isEmpty()){
-            if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())){
+        if (!inv.getText().isEmpty() && !max.getText().isEmpty()) {
+            if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())) {
                 inv.setStyle(EMPTY_ERROR);
                 max.setStyle(EMPTY_ERROR);
                 isValid = false;
@@ -153,10 +154,10 @@ public class OutsourcedPart  implements Initializable {
         return isValid;
     }
 
-    private boolean checkForMinInv(TextField inv){
+    private boolean checkForMinInv(TextField inv) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty()){
-            if(Integer.parseInt(inv.getText()) < 1){
+        if (!inv.getText().isEmpty()) {
+            if (Integer.parseInt(inv.getText()) < 1) {
                 inv.setStyle(EMPTY_ERROR);
                 isValid = false;
             } else {
@@ -168,10 +169,11 @@ public class OutsourcedPart  implements Initializable {
         }
         return isValid;
     }
-    private boolean checkForMinMax(TextField min, TextField max){
+
+    private boolean checkForMinMax(TextField min, TextField max) {
         boolean isValid = true;
-        if(!min.getText().isEmpty() && !max.getText().isEmpty()){
-            if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())){
+        if (!min.getText().isEmpty() && !max.getText().isEmpty()) {
+            if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())) {
                 min.setStyle(EMPTY_ERROR);
                 max.setStyle(EMPTY_ERROR);
                 isValid = false;
@@ -187,10 +189,10 @@ public class OutsourcedPart  implements Initializable {
         return isValid;
     }
 
-    private boolean checkForEmptyField(TextField[] textFields){
+    private boolean checkForEmptyField(TextField[] textFields) {
         boolean isValid = true;
-        for(TextField field : textFields){
-            if(field.getText().isEmpty()){
+        for (TextField field : textFields) {
+            if (field.getText().isEmpty()) {
                 field.setStyle(EMPTY_ERROR);
                 isValid = false;
             } else {
@@ -200,14 +202,14 @@ public class OutsourcedPart  implements Initializable {
         return isValid;
     }
 
-    private boolean checkForIntegerField(TextField[] textFields){
+    private boolean checkForIntegerField(TextField[] textFields) {
         boolean isValid = true;
-        for(TextField field : textFields){
-            if(!field.getText().isEmpty()){
-                try{
+        for (TextField field : textFields) {
+            if (!field.getText().isEmpty()) {
+                try {
                     Integer.parseInt(field.getText());
                     field.setStyle(NO_ERROR);
-                } catch (Exception e){
+                } catch (Exception e) {
                     field.setStyle(EMPTY_ERROR);
                     field.setText("Invalid Value");
                     isValid = false;
@@ -219,14 +221,14 @@ public class OutsourcedPart  implements Initializable {
         return isValid;
     }
 
-    private boolean checkForDoubleField(TextField[] textFields){
+    private boolean checkForDoubleField(TextField[] textFields) {
         boolean isValid = true;
-        for(TextField field : textFields){
-            if(!field.getText().isEmpty()){
-                try{
+        for (TextField field : textFields) {
+            if (!field.getText().isEmpty()) {
+                try {
                     Double.parseDouble(field.getText());
                     field.setStyle(NO_ERROR);
-                } catch (Exception e){
+                } catch (Exception e) {
                     field.setStyle(EMPTY_ERROR);
                     field.setText("Invalid Value");
                     isValid = false;
@@ -238,19 +240,20 @@ public class OutsourcedPart  implements Initializable {
         return isValid;
     }
 
-    public void isModify(int partToModify){
-        if(partToModify != -1){
-            this.partIDToModify = partToModify;
-            Outsourced outsourced = (Outsourced) Inventory.lookupPart(partToModify);
-            txtID.setText(Integer.toString(outsourced.getId()));
-            txtName.setText(outsourced.getName());
-            txtInv.setText(Integer.toString(outsourced.getStock()));
-            txtPrice.setText(Double.toString(outsourced.getPrice()));
-            txtMax.setText(Integer.toString(outsourced.getMax()));
-            txtMin.setText(Integer.toString(outsourced.getMin()));
-            txtCompanyName.setText(outsourced.getCompanyName());
+    public void isModify(Part partToModify) {
+        if (partToModify != null) {
+            partIDToModify = partToModify;
+            txtID.setText(Integer.toString(partToModify.getId()));
+            txtName.setText(partToModify.getName());
+            txtInv.setText(Integer.toString(partToModify.getStock()));
+            txtPrice.setText(Double.toString(partToModify.getPrice()));
+            txtMax.setText(Integer.toString(partToModify.getMax()));
+            txtMin.setText(Integer.toString(partToModify.getMin()));
+            if (Inventory.lookupPart(partToModify.getId()).getClass() == Outsourced.class) {
+                txtCompanyName.setText(((Outsourced) partToModify).getCompanyName());
+            }
             txtHeading.setText("Modify Part");
         }
     }
-
 }
+
