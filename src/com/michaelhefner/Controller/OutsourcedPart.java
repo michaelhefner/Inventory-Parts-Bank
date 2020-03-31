@@ -5,13 +5,11 @@
 
 package com.michaelhefner.Controller;
 
-import com.michaelhefner.Model.InHouse;
 import com.michaelhefner.Model.Inventory;
 import com.michaelhefner.Model.Outsourced;
 import com.michaelhefner.Model.Part;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -50,7 +48,7 @@ public class OutsourcedPart implements Initializable {
     @FXML
     private Button btnCancel;
 
-    final private String EMPTY_ERROR =
+    final private String ERROR =
             "-fx-background-color: rgba(255, 0, 0, 0.1);" +
                     " -fx-border-color: rgba(255,0,0,1);";
 
@@ -125,6 +123,13 @@ public class OutsourcedPart implements Initializable {
         });
     }
 
+    private void setTextFieldError(TextField textField){
+        textField.setStyle(ERROR);
+        textField.setText("Invalid Value");
+    }
+
+
+
     private boolean validateFields(TextField[] allFields,
                                    TextField[] integerFields,
                                    TextField[] doubleFields) {
@@ -135,23 +140,44 @@ public class OutsourcedPart implements Initializable {
         isValid &= checkForMinMax(txtMin, txtMax);
         isValid &= checkForMinInv(txtInv);
         isValid &= checkForInvMax(txtInv, txtMax);
+
+
+        if (!isValid){
+            Alert invalidTypeAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            invalidTypeAlert.setTitle("Invalid Type");
+            invalidTypeAlert.setHeaderText("Please check all input fields for correct value.");
+            invalidTypeAlert.setContentText("Select OK to continue");
+            invalidTypeAlert.showAndWait();
+        }
+
         return isValid;
     }
 
     private boolean checkForInvMax(TextField inv, TextField max) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty() && !max.getText().isEmpty()) {
-            if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())) {
-                inv.setStyle(EMPTY_ERROR);
-                max.setStyle(EMPTY_ERROR);
-                isValid = false;
+        try {
+            Integer.parseInt(inv.getText());
+        } catch (NumberFormatException e){
+            setTextFieldError(inv);
+            isValid = false;
+        }
+        try {
+            if (!inv.getText().isEmpty() && !max.getText().isEmpty()) {
+                if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())) {
+                    setTextFieldError(inv);
+                    setTextFieldError(max);
+                    isValid = false;
+                } else {
+                    inv.setStyle(NO_ERROR);
+                    max.setStyle(NO_ERROR);
+                }
             } else {
-                inv.setStyle(NO_ERROR);
-                max.setStyle(NO_ERROR);
+                setTextFieldError(inv);
+                setTextFieldError(max);
+                isValid = false;
             }
-        } else {
-            inv.setStyle(EMPTY_ERROR);
-            max.setStyle(EMPTY_ERROR);
+        } catch (NumberFormatException e){
+            setTextFieldError(max);
             isValid = false;
         }
         return isValid;
@@ -159,15 +185,20 @@ public class OutsourcedPart implements Initializable {
 
     private boolean checkForMinInv(TextField inv) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty()) {
-            if (Integer.parseInt(inv.getText()) < 1) {
-                inv.setStyle(EMPTY_ERROR);
-                isValid = false;
+        try{
+            if (!inv.getText().isEmpty()) {
+                if (Integer.parseInt(inv.getText()) < 1) {
+                    setTextFieldError(inv);
+                    isValid = false;
+                } else {
+                    inv.setStyle(NO_ERROR);
+                }
             } else {
-                inv.setStyle(NO_ERROR);
+                setTextFieldError(inv);
+                isValid = false;
             }
-        } else {
-            inv.setStyle(EMPTY_ERROR);
+        } catch (NumberFormatException e){
+            inv.setStyle(ERROR);
             isValid = false;
         }
         return isValid;
@@ -175,18 +206,29 @@ public class OutsourcedPart implements Initializable {
 
     private boolean checkForMinMax(TextField min, TextField max) {
         boolean isValid = true;
-        if (!min.getText().isEmpty() && !max.getText().isEmpty()) {
-            if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())) {
-                min.setStyle(EMPTY_ERROR);
-                max.setStyle(EMPTY_ERROR);
-                isValid = false;
+        try {
+            Integer.parseInt(min.getText());
+        } catch (NumberFormatException e){
+            setTextFieldError(min);
+            isValid = false;
+        }
+        try {
+            if (!min.getText().isEmpty() && !max.getText().isEmpty()) {
+                if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())) {
+                    setTextFieldError(min);
+                    setTextFieldError(max);
+                    isValid = false;
+                } else {
+                    min.setStyle(NO_ERROR);
+                    min.setStyle(NO_ERROR);
+                }
             } else {
-                min.setStyle(NO_ERROR);
-                min.setStyle(NO_ERROR);
+                setTextFieldError(min);
+                setTextFieldError(max);
+                isValid = false;
             }
-        } else {
-            min.setStyle(EMPTY_ERROR);
-            max.setStyle(EMPTY_ERROR);
+        } catch (NumberFormatException e){
+            setTextFieldError(max);
             isValid = false;
         }
         return isValid;
@@ -196,7 +238,7 @@ public class OutsourcedPart implements Initializable {
         boolean isValid = true;
         for (TextField field : textFields) {
             if (field.getText().isEmpty()) {
-                field.setStyle(EMPTY_ERROR);
+                setTextFieldError(field);
                 isValid = false;
             } else {
                 field.setStyle(NO_ERROR);
@@ -213,8 +255,7 @@ public class OutsourcedPart implements Initializable {
                     Integer.parseInt(field.getText());
                     field.setStyle(NO_ERROR);
                 } catch (Exception e) {
-                    field.setStyle(EMPTY_ERROR);
-                    field.setText("Invalid Value");
+                    setTextFieldError(field);
                     isValid = false;
                 }
             } else {
@@ -232,8 +273,7 @@ public class OutsourcedPart implements Initializable {
                     Double.parseDouble(field.getText());
                     field.setStyle(NO_ERROR);
                 } catch (Exception e) {
-                    field.setStyle(EMPTY_ERROR);
-                    field.setText("Invalid Value");
+                    setTextFieldError(field);
                     isValid = false;
                 }
             } else {
@@ -242,7 +282,6 @@ public class OutsourcedPart implements Initializable {
         }
         return isValid;
     }
-
     public void isModify(Part partToModify) {
         if (partToModify != null) {
             partIDToModify = partToModify;

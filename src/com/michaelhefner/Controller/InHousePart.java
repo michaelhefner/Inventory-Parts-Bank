@@ -80,13 +80,12 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.net.URL;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class InHousePart implements Initializable {
 
-    final private String EMPTY_ERROR =
+    final private String ERROR =
             "-fx-background-color: rgba(255, 0, 0, 0.1);" +
                     " -fx-border-color: rgba(255,0,0,1);";
 
@@ -153,6 +152,12 @@ public class InHousePart implements Initializable {
         }
     }
 
+    private void setTextFieldError(TextField textField) {
+        textField.setStyle(ERROR);
+        textField.setText("Invalid Value");
+    }
+
+
     private boolean validateFields(TextField[] allFields,
                                    TextField[] integerFields,
                                    TextField[] doubleFields) {
@@ -163,23 +168,42 @@ public class InHousePart implements Initializable {
         isValid &= checkForMinMax(txtMin, txtMax);
         isValid &= checkForMinInv(txtInv);
         isValid &= checkForInvMax(txtInv, txtMax);
+
+        if (!isValid) {
+            Alert invalidTypeAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            invalidTypeAlert.setTitle("Invalid Type");
+            invalidTypeAlert.setHeaderText("Please check all input fields for correct value.");
+            invalidTypeAlert.setContentText("Select OK to continue");
+            invalidTypeAlert.showAndWait();
+        }
         return isValid;
     }
 
     private boolean checkForInvMax(TextField inv, TextField max) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty() && !max.getText().isEmpty()) {
-            if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())) {
-                inv.setStyle(EMPTY_ERROR);
-                max.setStyle(EMPTY_ERROR);
-                isValid = false;
+        try {
+            Integer.parseInt(inv.getText());
+        } catch (NumberFormatException e) {
+            setTextFieldError(inv);
+            isValid = false;
+        }
+        try {
+            if (!inv.getText().isEmpty() && !max.getText().isEmpty()) {
+                if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())) {
+                    setTextFieldError(inv);
+                    setTextFieldError(max);
+                    isValid = false;
+                } else {
+                    inv.setStyle(NO_ERROR);
+                    max.setStyle(NO_ERROR);
+                }
             } else {
-                inv.setStyle(NO_ERROR);
-                max.setStyle(NO_ERROR);
+                setTextFieldError(inv);
+                setTextFieldError(max);
+                isValid = false;
             }
-        } else {
-            inv.setStyle(EMPTY_ERROR);
-            max.setStyle(EMPTY_ERROR);
+        } catch (NumberFormatException e) {
+            setTextFieldError(max);
             isValid = false;
         }
         return isValid;
@@ -187,15 +211,20 @@ public class InHousePart implements Initializable {
 
     private boolean checkForMinInv(TextField inv) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty()) {
-            if (Integer.parseInt(inv.getText()) < 1) {
-                inv.setStyle(EMPTY_ERROR);
-                isValid = false;
+        try {
+            if (!inv.getText().isEmpty()) {
+                if (Integer.parseInt(inv.getText()) < 1) {
+                    setTextFieldError(inv);
+                    isValid = false;
+                } else {
+                    inv.setStyle(NO_ERROR);
+                }
             } else {
-                inv.setStyle(NO_ERROR);
+                setTextFieldError(inv);
+                isValid = false;
             }
-        } else {
-            inv.setStyle(EMPTY_ERROR);
+        } catch (NumberFormatException e) {
+            inv.setStyle(ERROR);
             isValid = false;
         }
         return isValid;
@@ -203,18 +232,29 @@ public class InHousePart implements Initializable {
 
     private boolean checkForMinMax(TextField min, TextField max) {
         boolean isValid = true;
-        if (!min.getText().isEmpty() && !max.getText().isEmpty()) {
-            if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())) {
-                min.setStyle(EMPTY_ERROR);
-                max.setStyle(EMPTY_ERROR);
-                isValid = false;
+        try {
+            Integer.parseInt(min.getText());
+        } catch (NumberFormatException e) {
+            setTextFieldError(min);
+            isValid = false;
+        }
+        try {
+            if (!min.getText().isEmpty() && !max.getText().isEmpty()) {
+                if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())) {
+                    setTextFieldError(min);
+                    setTextFieldError(max);
+                    isValid = false;
+                } else {
+                    min.setStyle(NO_ERROR);
+                    min.setStyle(NO_ERROR);
+                }
             } else {
-                min.setStyle(NO_ERROR);
-                min.setStyle(NO_ERROR);
+                setTextFieldError(min);
+                setTextFieldError(max);
+                isValid = false;
             }
-        } else {
-            min.setStyle(EMPTY_ERROR);
-            max.setStyle(EMPTY_ERROR);
+        } catch (NumberFormatException e) {
+            setTextFieldError(max);
             isValid = false;
         }
         return isValid;
@@ -224,7 +264,7 @@ public class InHousePart implements Initializable {
         boolean isValid = true;
         for (TextField field : textFields) {
             if (field.getText().isEmpty()) {
-                field.setStyle(EMPTY_ERROR);
+                setTextFieldError(field);
                 isValid = false;
             } else {
                 field.setStyle(NO_ERROR);
@@ -241,8 +281,7 @@ public class InHousePart implements Initializable {
                     Integer.parseInt(field.getText());
                     field.setStyle(NO_ERROR);
                 } catch (Exception e) {
-                    field.setStyle(EMPTY_ERROR);
-                    field.setText("Invalid Value");
+                    setTextFieldError(field);
                     isValid = false;
                 }
             } else {
@@ -260,8 +299,7 @@ public class InHousePart implements Initializable {
                     Double.parseDouble(field.getText());
                     field.setStyle(NO_ERROR);
                 } catch (Exception e) {
-                    field.setStyle(EMPTY_ERROR);
-                    field.setText("Invalid Value");
+                    setTextFieldError(field);
                     isValid = false;
                 }
             } else {

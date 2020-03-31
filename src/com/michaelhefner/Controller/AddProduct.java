@@ -5,7 +5,6 @@
 
 package com.michaelhefner.Controller;
 
-import com.michaelhefner.Model.InHouse;
 import com.michaelhefner.Model.Inventory;
 import com.michaelhefner.Model.Part;
 import com.michaelhefner.Model.Product;
@@ -23,14 +22,13 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.net.URL;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 
 public class AddProduct implements Initializable {
 
-    final private String EMPTY_ERROR =
+    final private String ERROR =
             "-fx-background-color: rgba(255, 0, 0, 0.1);" +
                     " -fx-border-color: rgba(255,0,0,1);";
     final private String NO_ERROR =
@@ -140,15 +138,12 @@ public class AddProduct implements Initializable {
         for (Part part : partsToAddToProduct) {
             totalCost += part.getPrice();
         }
-        if ((partSelectedToAdd >= 0 && !txtPrice.getText().isEmpty())
-                && (totalCost + (Inventory.lookupPart(partSelectedToAdd)).getPrice()) <= Double.parseDouble(txtPrice.getText())) {
-            partsToAddToProduct.add(Inventory.lookupPart(partSelectedToAdd));
-            txtPrice.setStyle(NO_ERROR);
-            tblAddedParts.setStyle(NO_ERROR);
-        } else {
-            txtPrice.setStyle(EMPTY_ERROR);
-            tblAddedParts.setStyle(EMPTY_ERROR);
+        if (!((partSelectedToAdd >= 0 && !txtPrice.getText().isEmpty())
+                && (totalCost + (Inventory.lookupPart(partSelectedToAdd)).getPrice()) <= Double.parseDouble(txtPrice.getText()))) {
+            txtPrice.setText(Double.toString(totalCost + (Inventory.lookupPart(partSelectedToAdd)).getPrice()));
         }
+        partsToAddToProduct.add(Inventory.lookupPart(partSelectedToAdd));
+
     }
 
 
@@ -168,6 +163,13 @@ public class AddProduct implements Initializable {
         }
     }
 
+
+    private void setTextFieldError(TextField textField){
+        textField.setStyle(ERROR);
+        textField.setText("Invalid Value");
+    }
+
+
     private boolean validateFields(TextField[] allFields,
                                    TextField[] integerFields,
                                    TextField[] doubleFields) {
@@ -179,34 +181,44 @@ public class AddProduct implements Initializable {
         isValid &= checkForMinInv(txtInv);
         isValid &= checkForInvMax(txtInv, txtMax);
         isValid &= checkForPartsAdded(tblAddedParts);
-        return isValid;
-    }
 
-    private boolean checkForPartsAdded(TableView tableView) {
-        boolean isValid = true;
-        if (tableView.getItems().size() > 0) {
-            tableView.setStyle(NO_ERROR);
-        } else {
-            tableView.setStyle(EMPTY_ERROR);
-            isValid = false;
+
+        if (!isValid){
+            Alert invalidTypeAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            invalidTypeAlert.setTitle("Invalid Type");
+            invalidTypeAlert.setHeaderText("Please check all input fields for correct value.");
+            invalidTypeAlert.setContentText("Select OK to continue");
+            invalidTypeAlert.showAndWait();
         }
+
         return isValid;
     }
 
     private boolean checkForInvMax(TextField inv, TextField max) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty() && !max.getText().isEmpty()) {
-            if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())) {
-                inv.setStyle(EMPTY_ERROR);
-                max.setStyle(EMPTY_ERROR);
-                isValid = false;
+        try {
+            Integer.parseInt(inv.getText());
+        } catch (NumberFormatException e) {
+            setTextFieldError(inv);
+            isValid = false;
+        }
+        try {
+            if (!inv.getText().isEmpty() && !max.getText().isEmpty()) {
+                if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())) {
+                    setTextFieldError(inv);
+                    setTextFieldError(max);
+                    isValid = false;
+                } else {
+                    inv.setStyle(NO_ERROR);
+                    max.setStyle(NO_ERROR);
+                }
             } else {
-                inv.setStyle(NO_ERROR);
-                max.setStyle(NO_ERROR);
+                setTextFieldError(inv);
+                setTextFieldError(max);
+                isValid = false;
             }
-        } else {
-            inv.setStyle(EMPTY_ERROR);
-            max.setStyle(EMPTY_ERROR);
+        } catch (NumberFormatException e) {
+            setTextFieldError(max);
             isValid = false;
         }
         return isValid;
@@ -214,15 +226,20 @@ public class AddProduct implements Initializable {
 
     private boolean checkForMinInv(TextField inv) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty()) {
-            if (Integer.parseInt(inv.getText()) < 1) {
-                inv.setStyle(EMPTY_ERROR);
-                isValid = false;
+        try {
+            if (!inv.getText().isEmpty()) {
+                if (Integer.parseInt(inv.getText()) < 1) {
+                    setTextFieldError(inv);
+                    isValid = false;
+                } else {
+                    inv.setStyle(NO_ERROR);
+                }
             } else {
-                inv.setStyle(NO_ERROR);
+                setTextFieldError(inv);
+                isValid = false;
             }
-        } else {
-            inv.setStyle(EMPTY_ERROR);
+        } catch (NumberFormatException e) {
+            inv.setStyle(ERROR);
             isValid = false;
         }
         return isValid;
@@ -230,18 +247,29 @@ public class AddProduct implements Initializable {
 
     private boolean checkForMinMax(TextField min, TextField max) {
         boolean isValid = true;
-        if (!min.getText().isEmpty() && !max.getText().isEmpty()) {
-            if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())) {
-                min.setStyle(EMPTY_ERROR);
-                max.setStyle(EMPTY_ERROR);
-                isValid = false;
+        try {
+            Integer.parseInt(min.getText());
+        } catch (NumberFormatException e) {
+            setTextFieldError(min);
+            isValid = false;
+        }
+        try {
+            if (!min.getText().isEmpty() && !max.getText().isEmpty()) {
+                if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())) {
+                    setTextFieldError(min);
+                    setTextFieldError(max);
+                    isValid = false;
+                } else {
+                    min.setStyle(NO_ERROR);
+                    min.setStyle(NO_ERROR);
+                }
             } else {
-                min.setStyle(NO_ERROR);
-                min.setStyle(NO_ERROR);
+                setTextFieldError(min);
+                setTextFieldError(max);
+                isValid = false;
             }
-        } else {
-            min.setStyle(EMPTY_ERROR);
-            max.setStyle(EMPTY_ERROR);
+        } catch (NumberFormatException e) {
+            setTextFieldError(max);
             isValid = false;
         }
         return isValid;
@@ -251,7 +279,7 @@ public class AddProduct implements Initializable {
         boolean isValid = true;
         for (TextField field : textFields) {
             if (field.getText().isEmpty()) {
-                field.setStyle(EMPTY_ERROR);
+                setTextFieldError(field);
                 isValid = false;
             } else {
                 field.setStyle(NO_ERROR);
@@ -268,8 +296,7 @@ public class AddProduct implements Initializable {
                     Integer.parseInt(field.getText());
                     field.setStyle(NO_ERROR);
                 } catch (Exception e) {
-                    field.setStyle(EMPTY_ERROR);
-                    field.setText("Invalid Value");
+                    setTextFieldError(field);
                     isValid = false;
                 }
             } else {
@@ -287,8 +314,7 @@ public class AddProduct implements Initializable {
                     Double.parseDouble(field.getText());
                     field.setStyle(NO_ERROR);
                 } catch (Exception e) {
-                    field.setStyle(EMPTY_ERROR);
-                    field.setText("Invalid Value");
+                    setTextFieldError(field);
                     isValid = false;
                 }
             } else {
@@ -298,6 +324,16 @@ public class AddProduct implements Initializable {
         return isValid;
     }
 
+    private boolean checkForPartsAdded(TableView tableView) {
+        boolean isValid = true;
+        if (tableView.getItems().size() > 0) {
+            tableView.setStyle(NO_ERROR);
+        } else {
+            tableView.setStyle(ERROR);
+            isValid = false;
+        }
+        return isValid;
+    }
 
     public void isModify(Product productToModify) {
         if (productToModify != null) {
