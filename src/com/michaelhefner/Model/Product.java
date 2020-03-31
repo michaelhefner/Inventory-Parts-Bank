@@ -14,12 +14,12 @@ public class Product {
     private int id;
     private String name;
     private double price;
-    private int stock;
+    private int stock = 0;
     private int min;
     private int max;
 
 
-    public Product(int id,String name, double price,int stock,int min,int max){
+    public Product(int id, String name, double price, int stock, int min, int max) {
         this.setId(id);
         this.setMax(max);
         this.setMin(min);
@@ -85,13 +85,15 @@ public class Product {
         this.associatedParts = associatedParts;
     }
 
-    public void addAssociatedPart(Part part){
+    public void addAssociatedPart(Part part) {
         associatedParts.add(part);
     }
-    public boolean deleteAssociatedPart(Part selectedAspart){
+
+    public boolean deleteAssociatedPart(Part selectedAspart) {
         return associatedParts.remove(selectedAspart);
     }
-    public ObservableList<Part> getAllAssociatedParts(){
+
+    public ObservableList<Part> getAllAssociatedParts() {
         return associatedParts;
     }
 

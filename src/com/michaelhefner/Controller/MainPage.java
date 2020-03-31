@@ -256,8 +256,8 @@ public class MainPage implements Initializable {
         tblParts.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Part>() {
             @Override
             public void changed(ObservableValue<? extends Part> observableValue, Part part, Part t1) {
-                if(t1 != null){
-                    if (Inventory.lookupPart(t1.getId()).getClass() == InHouse.class){
+                if (t1 != null) {
+                    if (Inventory.lookupPart(t1.getId()).getClass() == InHouse.class) {
                         partSelectedIsInhouse = true;
                     } else {
                         partSelectedIsInhouse = false;
@@ -286,7 +286,7 @@ public class MainPage implements Initializable {
         tblProduct.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Product>() {
             @Override
             public void changed(ObservableValue<? extends Product> observableValue, Product product, Product t1) {
-                if (t1 != null){
+                if (t1 != null) {
                     productSelected = t1.getId();
                 }
             }

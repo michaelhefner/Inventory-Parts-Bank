@@ -59,7 +59,6 @@
  Done •  preventing the maximum field from having a value below the minimum field
 
  Done •  ensuring that a product must always have at least one part
-
  *************************************************************************/
 
 
@@ -67,7 +66,6 @@ package com.michaelhefner.Controller;
 
 import com.michaelhefner.Model.InHouse;
 import com.michaelhefner.Model.Inventory;
-import com.michaelhefner.Model.Outsourced;
 import com.michaelhefner.Model.Part;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -80,6 +78,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+
 import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -88,7 +87,7 @@ public class InHousePart implements Initializable {
 
     final private String EMPTY_ERROR =
             "-fx-background-color: rgba(255, 0, 0, 0.1);" +
-            " -fx-border-color: rgba(255,0,0,1);";
+                    " -fx-border-color: rgba(255,0,0,1);";
 
     final private String NO_ERROR =
             "-fx-background-color: rgba(225, 255, 255, 1);";
@@ -115,13 +114,13 @@ public class InHousePart implements Initializable {
     private Button btnCancel;
 
     @FXML
-    private void onSaveClicked(ActionEvent actionEvent){
-        TextField[] allFields = {txtPrice,txtID,txtInv,txtMachineID,txtMax,txtMin,txtName,txtPrice};
-        TextField[] integerFields = {txtID,txtInv,txtMachineID,txtMax,txtMin};
+    private void onSaveClicked(ActionEvent actionEvent) {
+        TextField[] allFields = {txtPrice, txtID, txtInv, txtMachineID, txtMax, txtMin, txtName, txtPrice};
+        TextField[] integerFields = {txtID, txtInv, txtMachineID, txtMax, txtMin};
         TextField[] doubleFields = {txtPrice};
         Stage stage = (Stage) txtMin.getScene().getWindow();
 
-        if(validateFields(allFields, integerFields, doubleFields)){
+        if (validateFields(allFields, integerFields, doubleFields)) {
             InHouse newInHousePart = new InHouse(Integer.parseInt(txtID.getText()),
                     txtName.getText(),
                     Double.parseDouble(txtPrice.getText()),
@@ -129,7 +128,7 @@ public class InHousePart implements Initializable {
                     Integer.parseInt(txtMin.getText()),
                     Integer.parseInt(txtMax.getText()),
                     Integer.parseInt(txtMachineID.getText()));
-            if(partIDToModify != null){
+            if (partIDToModify != null) {
                 Inventory.updatePart(partIDToModify.getId(), newInHousePart);
                 stage.close();
             } else {
@@ -140,7 +139,7 @@ public class InHousePart implements Initializable {
     }
 
     @FXML
-    private void closeWindow(){
+    private void closeWindow() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Cancel");
         alert.setHeaderText("You are about to close this window");
@@ -155,7 +154,7 @@ public class InHousePart implements Initializable {
 
     private boolean validateFields(TextField[] allFields,
                                    TextField[] integerFields,
-                                   TextField[] doubleFields){
+                                   TextField[] doubleFields) {
         boolean isValid = true;
         isValid &= checkForEmptyField(allFields);
         isValid &= checkForIntegerField(integerFields);
@@ -166,10 +165,10 @@ public class InHousePart implements Initializable {
         return isValid;
     }
 
-    private boolean checkForInvMax(TextField inv, TextField max){
+    private boolean checkForInvMax(TextField inv, TextField max) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty() && !max.getText().isEmpty()){
-            if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())){
+        if (!inv.getText().isEmpty() && !max.getText().isEmpty()) {
+            if (Integer.parseInt(inv.getText()) > Integer.parseInt(max.getText())) {
                 inv.setStyle(EMPTY_ERROR);
                 max.setStyle(EMPTY_ERROR);
                 isValid = false;
@@ -184,10 +183,11 @@ public class InHousePart implements Initializable {
         }
         return isValid;
     }
-    private boolean checkForMinInv(TextField inv){
+
+    private boolean checkForMinInv(TextField inv) {
         boolean isValid = true;
-        if (!inv.getText().isEmpty()){
-            if(Integer.parseInt(inv.getText()) < 1){
+        if (!inv.getText().isEmpty()) {
+            if (Integer.parseInt(inv.getText()) < 1) {
                 inv.setStyle(EMPTY_ERROR);
                 isValid = false;
             } else {
@@ -199,10 +199,11 @@ public class InHousePart implements Initializable {
         }
         return isValid;
     }
-    private boolean checkForMinMax(TextField min, TextField max){
+
+    private boolean checkForMinMax(TextField min, TextField max) {
         boolean isValid = true;
-        if(!min.getText().isEmpty() && !max.getText().isEmpty()){
-            if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())){
+        if (!min.getText().isEmpty() && !max.getText().isEmpty()) {
+            if (Integer.parseInt(max.getText()) < Integer.parseInt(min.getText())) {
                 min.setStyle(EMPTY_ERROR);
                 max.setStyle(EMPTY_ERROR);
                 isValid = false;
@@ -217,10 +218,11 @@ public class InHousePart implements Initializable {
         }
         return isValid;
     }
-    private boolean checkForEmptyField(TextField[] textFields){
+
+    private boolean checkForEmptyField(TextField[] textFields) {
         boolean isValid = true;
-        for(TextField field : textFields){
-            if(field.getText().isEmpty()){
+        for (TextField field : textFields) {
+            if (field.getText().isEmpty()) {
                 field.setStyle(EMPTY_ERROR);
                 isValid = false;
             } else {
@@ -230,14 +232,14 @@ public class InHousePart implements Initializable {
         return isValid;
     }
 
-    private boolean checkForIntegerField(TextField[] textFields){
+    private boolean checkForIntegerField(TextField[] textFields) {
         boolean isValid = true;
-        for(TextField field : textFields){
-            if(!field.getText().isEmpty()){
-                try{
+        for (TextField field : textFields) {
+            if (!field.getText().isEmpty()) {
+                try {
                     Integer.parseInt(field.getText());
                     field.setStyle(NO_ERROR);
-                } catch (Exception e){
+                } catch (Exception e) {
                     field.setStyle(EMPTY_ERROR);
                     field.setText("Invalid Value");
                     isValid = false;
@@ -249,14 +251,14 @@ public class InHousePart implements Initializable {
         return isValid;
     }
 
-    private boolean checkForDoubleField(TextField[] textFields){
+    private boolean checkForDoubleField(TextField[] textFields) {
         boolean isValid = true;
-        for(TextField field : textFields){
-            if(!field.getText().isEmpty()){
-                try{
+        for (TextField field : textFields) {
+            if (!field.getText().isEmpty()) {
+                try {
                     Double.parseDouble(field.getText());
                     field.setStyle(NO_ERROR);
-                } catch (Exception e){
+                } catch (Exception e) {
                     field.setStyle(EMPTY_ERROR);
                     field.setText("Invalid Value");
                     isValid = false;
@@ -305,7 +307,7 @@ public class InHousePart implements Initializable {
                     outsourcePartStage.show();
                     Stage stage = (Stage) btnCancel.getScene().getWindow();
                     stage.close();
-                } catch (Exception e){
+                } catch (Exception e) {
                     System.out.println(e);
                 }
 
