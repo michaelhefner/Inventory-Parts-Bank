@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="MichaelHefnerInventorySystem">
+    <output-path>$PROJECT_DIR$/out/artifacts/MichaelHefnerInventorySystem</output-path>
+    <root id="root">
+      <element id="archive" name="MichaelHefnerInventorySystem.jar">
+        <element id="module-output" name="MichaelHefnerInventorySystem" />
+      </element>
+    </root>
+  </artifact>
+</component>
