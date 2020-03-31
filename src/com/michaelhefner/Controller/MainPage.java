@@ -41,12 +41,6 @@
 
  1.  Set 1
 
- •  entering an inventory value that exceeds the minimum or maximum value for that part or product
-
- •  preventing the minimum field from having a value above the maximum field
-
- •  preventing the maximum field from having a value below the minimum field
-
  •  ensuring that a product must always have at least one part
 
  2.  Set 2
@@ -62,7 +56,6 @@ package com.michaelhefner.Controller;
 
 import com.michaelhefner.Model.*;
 import javafx.application.Platform;
-import javafx.beans.binding.IntegerBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.transformation.FilteredList;

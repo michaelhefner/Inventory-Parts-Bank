@@ -334,9 +334,20 @@ public class AddProduct implements Initializable {
         isValid &= checkForMinMax(txtMin, txtMax);
         isValid &= checkForMinInv(txtInv);
         isValid &= checkForInvMax(txtInv, txtMax);
+        isValid &= checkForPartsAdded(tblAddedParts);
         return isValid;
     }
 
+    private boolean checkForPartsAdded(TableView tableView){
+        boolean isValid = true;
+        if (tableView.getItems().size() > 0){
+            tableView.setStyle(NO_ERROR);
+        } else {
+            tableView.setStyle(EMPTY_ERROR);
+            isValid = false;
+        }
+        return isValid;
+    }
     private boolean checkForInvMax(TextField inv, TextField max){
         boolean isValid = true;
         if (!inv.getText().isEmpty() && !max.getText().isEmpty()){
