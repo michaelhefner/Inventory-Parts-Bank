@@ -78,7 +78,7 @@
                   <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
                </FlowPane.margin>
             </Text>
-            <Button fx:id="btnSearchProduct" mnemonicParsing="false" text="Search" />
+            <Button fx:id="btnSearchProduct" mnemonicParsing="false" onAction="#handleSearchProduct" text="Search" />
             <TextField fx:id="txtSearchProduct" promptText="Search" />
             <TableView fx:id="tblProduct" prefHeight="150.0" prefWidth="500.0">
                <FlowPane.margin>
@@ -103,7 +103,7 @@
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                      </HBox.margin>
                   </Button>
-                  <Button fx:id="btnDeleteProduct" mnemonicParsing="false" text="Delete">
+                  <Button fx:id="btnDeleteProduct" mnemonicParsing="false" onAction="#onDeleteProduct" text="Delete">
                      <HBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                      </HBox.margin>

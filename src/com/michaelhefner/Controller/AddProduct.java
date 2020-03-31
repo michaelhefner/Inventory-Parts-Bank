@@ -5,6 +5,7 @@
 
 package com.michaelhefner.Controller;
 
+import com.michaelhefner.Model.InHouse;
 import com.michaelhefner.Model.Inventory;
 import com.michaelhefner.Model.Part;
 import com.michaelhefner.Model.Product;
@@ -22,6 +23,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.net.URL;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
@@ -41,7 +43,7 @@ public class AddProduct implements Initializable {
     private ObservableList<Part> partsToAddToProduct = FXCollections.observableArrayList();
     private Product newProduct;
 
-    private int productIDToModify = -1;
+    private Product productIDToModify;
     @FXML
     private Text txtHeading;
     @FXML
@@ -83,13 +85,10 @@ public class AddProduct implements Initializable {
 
     @FXML
     public void handleSearchPart(ActionEvent actionEvent) {
-        filteredList.setPredicate(new Predicate<Part>() {
-            @Override
-            public boolean test(Part part) {
-                if (txtSearchPart.getText().isEmpty())
-                    return true;
-                return (part.getName().equals(txtSearchPart.getText()));
-            }
+        filteredList.setPredicate(part -> {
+            if (txtSearchPart.getText().isEmpty())
+                return true;
+            return (part.getName().equals(txtSearchPart.getText()));
         });
     }
 
@@ -111,10 +110,11 @@ public class AddProduct implements Initializable {
             for (Part part : partsToAddToProduct) {
                 tempProduct.addAssociatedPart(part);
             }
-            if (productIDToModify >= 0) {
-                Inventory.updateProduct(productIDToModify, tempProduct);
+            if (productIDToModify != null) {
+
+                Inventory.updateProduct(Inventory.getAIIProducts().indexOf(productIDToModify), tempProduct);
                 stage.close();
-            } else if (productIDToModify == -1) {
+            } else {
                 Inventory.addProduct(tempProduct);
                 stage.close();
             }
@@ -137,11 +137,11 @@ public class AddProduct implements Initializable {
     @FXML
     private void onAddPartClicked(ActionEvent actionEvent) {
         double totalCost = 0.0;
-        for (int i = 0; i < partsToAddToProduct.size(); i++) {
-            totalCost += partsToAddToProduct.get(i).getPrice();
+        for (Part part : partsToAddToProduct) {
+            totalCost += part.getPrice();
         }
         if ((partSelectedToAdd >= 0)
-                && (totalCost + Inventory.lookupPart(partSelectedToAdd).getPrice()) <= Double.parseDouble(txtPrice.getText())) {
+                && (totalCost + Objects.requireNonNull(Inventory.lookupPart(partSelectedToAdd)).getPrice()) <= Double.parseDouble(txtPrice.getText())) {
             partsToAddToProduct.add(Inventory.lookupPart(partSelectedToAdd));
             txtPrice.setStyle(NO_ERROR);
             tblAddedParts.setStyle(NO_ERROR);
@@ -157,6 +157,7 @@ public class AddProduct implements Initializable {
         if (partSelectedToDelete != -1) {
             Part part = Inventory.lookupPart(partSelectedToDelete);
             alert.setTitle("Delete");
+            assert part != null;
             alert.setHeaderText("You are about to delete " + part.getName());
             alert.setContentText("Are you sure you would like to proceed?");
 
@@ -298,25 +299,25 @@ public class AddProduct implements Initializable {
     }
 
 
-    public void isModify(int productToModify) {
-        if (productToModify != -1 && productToModify < Inventory.getAIIProducts().size()) {
-            this.productIDToModify = productToModify;
-            Product product = Inventory.lookupProduct(productToModify);
-            txtID.setText(Integer.toString(product.getId()));
-            txtProductName.setText(product.getName());
-            txtInv.setText(Integer.toString(product.getStock()));
-            txtPrice.setText(Double.toString(product.getPrice()));
-            txtMax.setText(Integer.toString(product.getMax()));
-            txtMin.setText(Integer.toString(product.getMin()));
-            if (!product.getAllAssociatedParts().isEmpty()) {
-                partsToAddToProduct.addAll(product.getAllAssociatedParts());
-            }
+    public void isModify(Product productToModify) {
+        if (productToModify != null) {
+            productIDToModify = productToModify;
+            txtID.setText(Integer.toString(productToModify.getId()));
+            txtProductName.setText(productToModify.getName());
+            txtInv.setText(Integer.toString(productToModify.getStock()));
+            txtPrice.setText(Double.toString(productToModify.getPrice()));
+            txtMax.setText(Integer.toString(productToModify.getMax()));
+            txtMin.setText(Integer.toString(productToModify.getMin()));
             txtHeading.setText("Modify Product");
+            if (!productToModify.getAllAssociatedParts().isEmpty()) {
+                partsToAddToProduct.addAll(productToModify.getAllAssociatedParts());
+            }
         }
     }
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        txtID.setText(Integer.toString(Inventory.lookupProduct(Inventory.getAIIProducts().size() - 1).getId() + 1));
+        txtID.setDisable(true);
 
         allPartsObservable.addAll(Inventory.getAIIParts());
 
@@ -334,12 +335,9 @@ public class AddProduct implements Initializable {
 
         tblToAddParts.setItems(filteredList);
 
-        tblToAddParts.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Part>() {
-            @Override
-            public void changed(ObservableValue<? extends Part> observableValue, Part part, Part t1) throws NullPointerException {
-                if (t1 != null) {
-                    partSelectedToAdd = t1.getId();
-                }
+        tblToAddParts.getSelectionModel().selectedItemProperty().addListener((observableValue, part, t1) -> {
+            if (t1 != null) {
+                partSelectedToAdd = t1.getId();
             }
         });
 

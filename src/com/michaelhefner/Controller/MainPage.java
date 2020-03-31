@@ -72,6 +72,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
@@ -79,7 +80,7 @@ import java.util.function.Predicate;
 public class MainPage implements Initializable {
     private boolean partSelectedIsInhouse = true;
     private Part partSelected;
-    private int productSelected = -1;
+    private Product productSelected;
     @FXML
     private TableView<Part> tblParts;
 
@@ -111,6 +112,8 @@ public class MainPage implements Initializable {
 
     @FXML
     private TextField txtSearchPart;
+    @FXML
+    private TextField txtSearchProduct;
 
     private FilteredList<Part> filteredList;
     private FilteredList<Product> productFilteredList;
@@ -119,13 +122,19 @@ public class MainPage implements Initializable {
 
     @FXML
     public void handleSearchPart(ActionEvent actionEvent) {
-        filteredList.setPredicate(new Predicate<Part>() {
-            @Override
-            public boolean test(Part part) {
-                if (txtSearchPart.getText().isEmpty())
-                    return true;
-                return (part.getName().equals(txtSearchPart.getText()));
-            }
+        filteredList.setPredicate(part -> {
+            if (txtSearchPart.getText().isEmpty())
+                return true;
+            return (part.getName().equals(txtSearchPart.getText()));
+        });
+    }
+
+    @FXML
+    public void handleSearchProduct(ActionEvent actionEvent) {
+        productFilteredList.setPredicate(product -> {
+            if (txtSearchProduct.getText().isEmpty())
+                return true;
+            return (product.getName().equals(txtSearchProduct.getText()));
         });
     }
 
@@ -190,7 +199,6 @@ public class MainPage implements Initializable {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() == ButtonType.OK) {
             try {
-
                 Platform.exit();
                 System.exit(0);
             } catch (Exception e) {
@@ -213,58 +221,36 @@ public class MainPage implements Initializable {
         }
     }
 
+
+    @FXML
+    public void onDeleteProduct(ActionEvent actionEvent) {
+        if (productSelected != null) {
+            alert.setTitle("Delete");
+            alert.setHeaderText("You are about to delete " + productSelected.getName());
+            alert.setContentText("Are you sure you would like to proceed?");
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == ButtonType.OK) {
+                Inventory.deleteProduct(productSelected);
+            }
+        }
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        /***************
-         * Start Demo Data
-         */
-        InHouse part = new InHouse(0, "testing", 1.0, 1, 0, 10, 12);
-        InHouse part2 = new InHouse(1, "one", 1.0, 1, 0, 10, 1234);
-        Outsourced part3 = new Outsourced(2, "outsourced", 1.0, 1, 0, 10, "comp");
-        Product product1 = new Product(0, "name", 1.0, 12, 1, 10);
-        Product product2 = new Product(1, "testing product", 1.0, 12, 1, 10);
-        Product product3 = new Product(2, "one", 100.0, 12, 1, 10);
-
-        product3.addAssociatedPart(part);
-        product3.addAssociatedPart(part2);
-        Inventory.addPart(part);
-        Inventory.addPart(part2);
-        Inventory.addPart(part3);
-        Inventory.addProduct(product1);
-        Inventory.addProduct(product2);
-        Inventory.addProduct(product3);
-
-        /*******
-         * End Demo Data
-         *
-         */
-
         clmPartID.setCellValueFactory(new PropertyValueFactory<Part, String>("id"));
         clmPartName.setCellValueFactory(new PropertyValueFactory<Part, String>("name"));
         clmPrice.setCellValueFactory(new PropertyValueFactory<Part, String>("price"));
         clmInvLevel.setCellValueFactory(new PropertyValueFactory<Part, String>("stock"));
 
-
-        filteredList = new FilteredList<Part>(Inventory.getAIIParts(), new Predicate<Part>() {
-            @Override
-            public boolean test(Part part) {
-                return true;
-            }
-        });
+        filteredList = new FilteredList<Part>(Inventory.getAIIParts(), part -> true);
 
         tblParts.setItems(filteredList);
-        tblParts.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Part>() {
-            @Override
-            public void changed(ObservableValue<? extends Part> observableValue, Part part, Part t1) {
-                if (t1 != null) {
-                    if (Inventory.lookupPart(t1.getId()).getClass() == InHouse.class) {
-                        partSelectedIsInhouse = true;
-                    } else {
-                        partSelectedIsInhouse = false;
-                    }
-
-                    partSelected = Inventory.lookupPart(t1.getId());
-                }
+        tblParts.getSelectionModel().selectedItemProperty().addListener((observableValue, part, t1) -> {
+            if (t1 != null) {
+                partSelectedIsInhouse =
+                        Objects.requireNonNull(Inventory.lookupPart(t1.getId())).getClass() == InHouse.class;
+                partSelected = Inventory.lookupPart(t1.getId());
             }
         });
 
@@ -273,25 +259,14 @@ public class MainPage implements Initializable {
         clmProductPrice.setCellValueFactory(new PropertyValueFactory<Product, String>("price"));
         clmProductInvLevel.setCellValueFactory(new PropertyValueFactory<Product, String>("stock"));
 
-
-        productFilteredList = new FilteredList<Product>(Inventory.getAIIProducts(), new Predicate<Product>() {
-            @Override
-            public boolean test(Product product) {
-                return true;
-            }
-        });
+        productFilteredList = new FilteredList<Product>(Inventory.getAIIProducts(), product -> true);
 
         tblProduct.setItems(productFilteredList);
 
-        tblProduct.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Product>() {
-            @Override
-            public void changed(ObservableValue<? extends Product> observableValue, Product product, Product t1) {
-                if (t1 != null) {
-                    productSelected = t1.getId();
-                }
+        tblProduct.getSelectionModel().selectedItemProperty().addListener((observableValue, product, t1) -> {
+            if (t1 != null) {
+                productSelected = t1;
             }
         });
-
-
     }
 }
