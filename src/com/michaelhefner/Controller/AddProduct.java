@@ -20,7 +20,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.net.URL;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -332,7 +331,7 @@ public class AddProduct implements Initializable {
                 textField.setStyle(ERROR);
                 isValid = false;
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
 
         }
 

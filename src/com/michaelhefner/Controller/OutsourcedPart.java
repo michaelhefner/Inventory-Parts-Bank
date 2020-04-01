@@ -1,7 +1,7 @@
 /*
-* Michael Hefner
-* C482 - Software 1
-*/
+ * Michael Hefner
+ * C482 - Software 1
+ */
 
 package com.michaelhefner.Controller;
 
@@ -123,11 +123,10 @@ public class OutsourcedPart implements Initializable {
         });
     }
 
-    private void setTextFieldError(TextField textField){
+    private void setTextFieldError(TextField textField) {
         textField.setStyle(ERROR);
         textField.setText("Invalid Value");
     }
-
 
 
     private boolean validateFields(TextField[] allFields,
@@ -142,7 +141,7 @@ public class OutsourcedPart implements Initializable {
         isValid &= checkForInvMax(txtInv, txtMax);
 
 
-        if (!isValid){
+        if (!isValid) {
             Alert invalidTypeAlert = new Alert(Alert.AlertType.CONFIRMATION);
             invalidTypeAlert.setTitle("Invalid Type");
             invalidTypeAlert.setHeaderText("Please check all input fields for correct value.");
@@ -157,7 +156,7 @@ public class OutsourcedPart implements Initializable {
         boolean isValid = true;
         try {
             Integer.parseInt(inv.getText());
-        } catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             setTextFieldError(inv);
             isValid = false;
         }
@@ -176,7 +175,7 @@ public class OutsourcedPart implements Initializable {
                 setTextFieldError(max);
                 isValid = false;
             }
-        } catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             setTextFieldError(max);
             isValid = false;
         }
@@ -185,7 +184,7 @@ public class OutsourcedPart implements Initializable {
 
     private boolean checkForMinInv(TextField inv) {
         boolean isValid = true;
-        try{
+        try {
             if (!inv.getText().isEmpty()) {
                 if (Integer.parseInt(inv.getText()) < 1) {
                     setTextFieldError(inv);
@@ -197,7 +196,7 @@ public class OutsourcedPart implements Initializable {
                 setTextFieldError(inv);
                 isValid = false;
             }
-        } catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             inv.setStyle(ERROR);
             isValid = false;
         }
@@ -208,7 +207,7 @@ public class OutsourcedPart implements Initializable {
         boolean isValid = true;
         try {
             Integer.parseInt(min.getText());
-        } catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             setTextFieldError(min);
             isValid = false;
         }
@@ -227,7 +226,7 @@ public class OutsourcedPart implements Initializable {
                 setTextFieldError(max);
                 isValid = false;
             }
-        } catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             setTextFieldError(max);
             isValid = false;
         }
@@ -282,6 +281,7 @@ public class OutsourcedPart implements Initializable {
         }
         return isValid;
     }
+
     public void isModify(Part partToModify) {
         if (partToModify != null) {
             this.partToModify = partToModify;

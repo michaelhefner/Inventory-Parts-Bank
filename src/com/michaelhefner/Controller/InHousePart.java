@@ -278,7 +278,6 @@ public class InHousePart implements Initializable {
             public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
                 try {
                     FXMLLoader loader = new FXMLLoader();
-                    System.out.println(loader);
                     loader.setLocation(getClass().getResource("../View/OutsourcedPart.fxml"));
                     FlowPane root = loader.load();
                     OutsourcedPart outsourcedPart = loader.getController();

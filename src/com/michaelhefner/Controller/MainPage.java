@@ -200,7 +200,6 @@ public class MainPage implements Initializable {
 
         tblParts.setItems(filteredList);
         tblParts.getSelectionModel().selectedItemProperty().addListener((observableValue, part, t1) -> {
-            System.out.println(observableValue.getValue());
             if (t1 != null) {
                 partSelectedIsInHouse = t1.getClass() == InHouse.class;
             }
