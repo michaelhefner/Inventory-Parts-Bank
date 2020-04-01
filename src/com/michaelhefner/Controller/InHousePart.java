@@ -1,66 +1,7 @@
-/*************************************************************************
- Michael Hefner
- C482 - Software 1
- I. User Interface
-
-
- Done I. User Interface
-
- Done B.  An add part screen, showing the following controls:
-
- Done •  radio buttons for “In-House” and “Outsourced” parts
-
- Done •  buttons for “Save” and “Cancel”
-
- Done •  text fields for ID, name, inventory level, price, max and min values, and company name or machine ID
-
- Done •  labels for ID, name, inventory level, price/cost, max and min values, the application title, and company name or machine ID
-
- Done C.  A modify part screen, with fields that populate with presaved data, showing the following controls:
-
- Done •  radio buttons for “In-House” and “Outsourced” parts
-
- Done  •  buttons for “Save” and “Cancel”
-
- Done •  text fields for ID, name, inventory level, price, max and min values, and company name or machine ID
-
- Done •  labels for ID, name, inventory level, price, max and min values, the application title, and company name or machine ID
-
- Done H.  Add the following functionalities to the part screens, using the methods provided in the attached “UML Class Diagram”:
-
- Done 1.  “Add Part” screen
-
- Done •  select “In-House” or “Outsourced”
-
- Done •  enter name, inventory level, price, max and min values, and company name or machine ID
-
- Done •  save the data and then redirect to the main screen
-
- Done •  cancel or exit out of this screen and go back to the main screen
-
- Done 2.  “Modify Part” screen
-
- Done •  select “In-House” or “Outsourced”
-
- Done •  modify or change data values
-
- Done •  save modifications to the data and then redirect to the main screen
-
- Done •  cancel or exit out of this screen and go back to the main screen
-
- Done J.  Write code to implement exception controls with custom error messages for one requirement out of each of the following sets (pick one from each):
-
- Done 1.  Set 1
-
- Done •  entering an inventory value that exceeds the minimum or maximum value for that part or product
-
- Done •  preventing the minimum field from having a value above the maximum field
-
- Done •  preventing the maximum field from having a value below the minimum field
-
- Done •  ensuring that a product must always have at least one part
- *************************************************************************/
-
+/*
+ * Michael Hefner
+ * C482 - Software 1
+ */
 
 package com.michaelhefner.Controller;
 
@@ -69,7 +10,6 @@ import com.michaelhefner.Model.Inventory;
 import com.michaelhefner.Model.Part;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -80,6 +20,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.net.URL;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -91,7 +32,7 @@ public class InHousePart implements Initializable {
 
     final private String NO_ERROR =
             "-fx-background-color: rgba(225, 255, 255, 1);";
-    private Part partIDToModify;
+    private Part partToModify;
     @FXML
     private Text txtHeading;
     @FXML
@@ -114,7 +55,7 @@ public class InHousePart implements Initializable {
     private Button btnCancel;
 
     @FXML
-    private void onSaveClicked(ActionEvent actionEvent) {
+    private void onSaveClicked() {
         TextField[] allFields = {txtPrice, txtID, txtInv, txtMachineID, txtMax, txtMin, txtName, txtPrice};
         TextField[] integerFields = {txtID, txtInv, txtMachineID, txtMax, txtMin};
         TextField[] doubleFields = {txtPrice};
@@ -128,8 +69,8 @@ public class InHousePart implements Initializable {
                     Integer.parseInt(txtMin.getText()),
                     Integer.parseInt(txtMax.getText()),
                     Integer.parseInt(txtMachineID.getText()));
-            if (partIDToModify != null) {
-                Inventory.updatePart(partIDToModify.getId(), newInHousePart);
+            if (partToModify != null) {
+                Inventory.updatePart(partToModify.getId(), newInHousePart);
                 stage.close();
             } else {
                 Inventory.addPart(newInHousePart);
@@ -146,7 +87,7 @@ public class InHousePart implements Initializable {
         alert.setContentText("Select OK to proceed");
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
+        if (result.isPresent() && result.get() == ButtonType.OK) {
             Stage stage = (Stage) btnCancel.getScene().getWindow();
             stage.close();
         }
@@ -311,14 +252,14 @@ public class InHousePart implements Initializable {
 
     public void isModify(Part partToModify) {
         if (partToModify != null) {
-            partIDToModify = partToModify;
+            this.partToModify = partToModify;
             txtID.setText(Integer.toString(partToModify.getId()));
             txtName.setText(partToModify.getName());
             txtInv.setText(Integer.toString(partToModify.getStock()));
             txtPrice.setText(Double.toString(partToModify.getPrice()));
             txtMax.setText(Integer.toString(partToModify.getMax()));
             txtMin.setText(Integer.toString(partToModify.getMin()));
-            if (Inventory.lookupPart(partToModify.getId()).getClass() == InHouse.class) {
+            if (Objects.requireNonNull(Inventory.lookupPart(partToModify.getId())).getClass() == InHouse.class) {
                 txtMachineID.setText(Integer.toString(((InHouse) partToModify).getMachineId()));
             }
             txtHeading.setText("Modify Part");
@@ -329,10 +270,10 @@ public class InHousePart implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         int currentIndex = 0;
         if (Inventory.getAIIParts().size() > 0)
-            currentIndex = (Inventory.lookupPart(Inventory.getAIIParts().size() - 1)).getId() + 1;
+            currentIndex = (Objects.requireNonNull(Inventory.lookupPart(Inventory.getAIIParts().size() - 1))).getId() + 1;
         txtID.setText(Integer.toString(currentIndex));
         txtID.setDisable(true);
-        rbOutsource.selectedProperty().addListener(new ChangeListener<Boolean>() {
+        rbOutsource.selectedProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
                 try {
@@ -341,15 +282,15 @@ public class InHousePart implements Initializable {
                     loader.setLocation(getClass().getResource("../View/OutsourcedPart.fxml"));
                     FlowPane root = loader.load();
                     OutsourcedPart outsourcedPart = loader.getController();
-                    if (partIDToModify != null)
-                        outsourcedPart.isModify(partIDToModify);
+                    if (partToModify != null)
+                        outsourcedPart.isModify(partToModify);
                     Stage outsourcePartStage = new Stage();
                     outsourcePartStage.setScene(new Scene(root));
                     outsourcePartStage.show();
                     Stage stage = (Stage) btnCancel.getScene().getWindow();
                     stage.close();
                 } catch (Exception e) {
-                    System.out.println(e);
+                    e.printStackTrace();
                 }
 
             }

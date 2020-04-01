@@ -1,7 +1,7 @@
-/*************************************************************************
- Michael Hefner
- C482 - Software 1
- *************************************************************************/
+/*
+* Michael Hefner
+* C482 - Software 1
+*/
 
 package com.michaelhefner.Controller;
 
@@ -10,7 +10,6 @@ import com.michaelhefner.Model.Outsourced;
 import com.michaelhefner.Model.Part;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -21,12 +20,13 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.net.URL;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class OutsourcedPart implements Initializable {
 
-    private Part partIDToModify;
+    private Part partToModify;
     @FXML
     private Text txtHeading;
     @FXML
@@ -56,7 +56,7 @@ public class OutsourcedPart implements Initializable {
             "-fx-background-color: rgba(225, 255, 255, 1);";
 
     @FXML
-    private void onSaveClicked(ActionEvent actionEvent) {
+    private void onSaveClicked() {
         TextField[] allFields = {txtPrice, txtID, txtInv, txtCompanyName, txtMax, txtMin, txtName, txtPrice};
         TextField[] integerFields = {txtID, txtInv, txtMax, txtMin};
         TextField[] doubleFields = {txtPrice};
@@ -70,8 +70,8 @@ public class OutsourcedPart implements Initializable {
                     Integer.parseInt(txtMin.getText()),
                     Integer.parseInt(txtMax.getText()),
                     txtCompanyName.getText());
-            if (partIDToModify != null) {
-                Inventory.updatePart(partIDToModify.getId(), outsourcedPart);
+            if (partToModify != null) {
+                Inventory.updatePart(partToModify.getId(), outsourcedPart);
                 stage.close();
             } else {
                 Inventory.addPart(outsourcedPart);
@@ -88,7 +88,7 @@ public class OutsourcedPart implements Initializable {
         alert.setContentText("Select OK to proceed");
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
+        if (result.isPresent() && result.get() == ButtonType.OK) {
             Stage stage = (Stage) btnCancel.getScene().getWindow();
             stage.close();
         }
@@ -98,10 +98,10 @@ public class OutsourcedPart implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         int currentIndex = 0;
         if (Inventory.getAIIParts().size() > 0)
-            currentIndex = (Inventory.lookupPart(Inventory.getAIIParts().size() - 1)).getId() + 1;
+            currentIndex = (Objects.requireNonNull(Inventory.lookupPart(Inventory.getAIIParts().size() - 1))).getId() + 1;
         txtID.setText(Integer.toString(currentIndex));
         txtID.setDisable(true);
-        rbInHouse.selectedProperty().addListener(new ChangeListener<Boolean>() {
+        rbInHouse.selectedProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
                 try {
@@ -109,15 +109,15 @@ public class OutsourcedPart implements Initializable {
                     loader.setLocation(getClass().getResource("../View/InHousePart.fxml"));
                     FlowPane root = loader.load();
                     InHousePart inHousePart = loader.getController();
-                    if (partIDToModify != null)
-                        inHousePart.isModify(partIDToModify);
+                    if (partToModify != null)
+                        inHousePart.isModify(partToModify);
                     Stage inHousePartStage = new Stage();
                     inHousePartStage.setScene(new Scene(root));
                     inHousePartStage.show();
                     Stage stage = (Stage) btnCancel.getScene().getWindow();
                     stage.close();
                 } catch (Exception e) {
-                    System.out.println(e);
+                    e.printStackTrace();
                 }
             }
         });
@@ -284,14 +284,14 @@ public class OutsourcedPart implements Initializable {
     }
     public void isModify(Part partToModify) {
         if (partToModify != null) {
-            partIDToModify = partToModify;
+            this.partToModify = partToModify;
             txtID.setText(Integer.toString(partToModify.getId()));
             txtName.setText(partToModify.getName());
             txtInv.setText(Integer.toString(partToModify.getStock()));
             txtPrice.setText(Double.toString(partToModify.getPrice()));
             txtMax.setText(Integer.toString(partToModify.getMax()));
             txtMin.setText(Integer.toString(partToModify.getMin()));
-            if (Inventory.lookupPart(partToModify.getId()).getClass() == Outsourced.class) {
+            if (Objects.requireNonNull(Inventory.lookupPart(partToModify.getId())).getClass() == Outsourced.class) {
                 txtCompanyName.setText(((Outsourced) partToModify).getCompanyName());
             }
             txtHeading.setText("Modify Part");

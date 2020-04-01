@@ -1,65 +1,14 @@
-/*************************************************************************
- Michael Hefner
- C482 - Software 1
-
- II. Application
-
- G.  Add the following functionalities to the main screen, using the methods provided in the attached “UML Class Diagram”:
-
- •  delete a selected part or product from the list
-
- •  search for a part or product and display matching results
-
- I.  Add the following functionalities to the product screens, using the methods provided in the attached “UML Class Diagram”:
-
- 1.  “Add Product” screen
-
- •  enter name, inventory level, price, and max and min values
-
- •  save the data and then redirect to the main screen
-
- •  associate one or more parts with a product
-
- •  remove or disassociate a part from a product
-
- •  cancel or exit out of this screen and go back to the main screen
-
- 2.  “Modify Product” screen
-
- •  modify or change data values
-
- •  save modifications to the data and then redirect to the main screen
-
- •  associate one or more parts with a product
-
- •  remove or disassociate a part from a product
-
- •  cancel or exit out of this screen and go back to the main screen
-
-
- J.  Write code to implement exception controls with custom error messages for one requirement out of each of the following sets (pick one from each):
-
- 1.  Set 1
-
- •  ensuring that a product must always have at least one part
-
- 2.  Set 2
-
- •  including a confirm dialogue for all “Delete” and “Cancel” buttons
-
- •  ensuring that the price of a product cannot be less than the cost of the parts
-
- •  ensuring that a product must have a name, price, and inventory level (default 0)
- *************************************************************************/
+/*
+ * Michael Hefner
+ * C482 - Software 1
+ */
 
 package com.michaelhefner.Controller;
 
 import com.michaelhefner.Model.*;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.collections.transformation.FilteredList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -75,12 +24,15 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.function.Predicate;
 
 public class MainPage implements Initializable {
-    private boolean partSelectedIsInhouse = true;
+    private boolean partSelectedIsInHouse = true;
     private Part partSelected;
     private Product productSelected;
+    private FilteredList<Part> filteredList;
+    private FilteredList<Product> productFilteredList;
+    private Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+
     @FXML
     private TableView<Part> tblParts;
 
@@ -95,6 +47,7 @@ public class MainPage implements Initializable {
 
     @FXML
     private TableColumn<Part, String> clmPrice;
+
     @FXML
     private TableView<Product> tblProduct;
 
@@ -112,16 +65,12 @@ public class MainPage implements Initializable {
 
     @FXML
     private TextField txtSearchPart;
+
     @FXML
     private TextField txtSearchProduct;
 
-    private FilteredList<Part> filteredList;
-    private FilteredList<Product> productFilteredList;
-
-    private Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-
     @FXML
-    public void handleSearchPart(ActionEvent actionEvent) {
+    public void handleSearchPart() {
         filteredList.setPredicate(part -> {
             if (txtSearchPart.getText().isEmpty())
                 return true;
@@ -130,7 +79,7 @@ public class MainPage implements Initializable {
     }
 
     @FXML
-    public void handleSearchProduct(ActionEvent actionEvent) {
+    public void handleSearchProduct() {
         productFilteredList.setPredicate(product -> {
             if (txtSearchProduct.getText().isEmpty())
                 return true;
@@ -139,7 +88,7 @@ public class MainPage implements Initializable {
     }
 
     @FXML
-    public void openAddProduct(ActionEvent actionEvent) throws IOException {
+    public void openAddProduct() throws IOException {
         Parent addProduct = FXMLLoader.load(getClass().getResource("../View/AddProduct.fxml"));
         Stage addProductStage = new Stage();
         addProductStage.setScene(new Scene(addProduct));
@@ -147,7 +96,7 @@ public class MainPage implements Initializable {
     }
 
     @FXML
-    public void openAddPart(ActionEvent actionEvent) throws IOException {
+    public void openAddPart() throws IOException {
         Parent root = FXMLLoader.load(getClass().getResource("../View/InHousePart.fxml"));
         Stage inHousePartStage = new Stage();
         inHousePartStage.setScene(new Scene(root));
@@ -155,67 +104,71 @@ public class MainPage implements Initializable {
     }
 
     @FXML
-    private void onModifyPartClicked(ActionEvent actionEvent) throws IOException {
-        FXMLLoader loader = new FXMLLoader();
+    private void onModifyPartClicked() throws IOException {
+        if (partSelected != null) {
+            FXMLLoader loader = new FXMLLoader();
 
-        if (partSelectedIsInhouse) {
-            loader.setLocation(getClass().getResource("../View/InHousePart.fxml"));
-            FlowPane root = loader.load();
-            InHousePart inHousePart = loader.getController();
-            inHousePart.isModify(partSelected);
-            Stage inHousePartStage = new Stage();
-            inHousePartStage.setScene(new Scene(root));
-            inHousePartStage.show();
-        } else {
-            loader.setLocation(getClass().getResource("../View/OutsourcedPart.fxml"));
-            FlowPane root = loader.load();
-            OutsourcedPart outsourcedPart = loader.getController();
-            outsourcedPart.isModify(partSelected);
-            Stage outsourcePartStage = new Stage();
-            outsourcePartStage.setScene(new Scene(root));
-            outsourcePartStage.show();
+            if (partSelectedIsInHouse) {
+                loader.setLocation(getClass().getResource("../View/InHousePart.fxml"));
+                FlowPane root = loader.load();
+                InHousePart inHousePart = loader.getController();
+                inHousePart.isModify(partSelected);
+                Stage inHousePartStage = new Stage();
+                inHousePartStage.setScene(new Scene(root));
+                inHousePartStage.show();
+            } else {
+                loader.setLocation(getClass().getResource("../View/OutsourcedPart.fxml"));
+                FlowPane root = loader.load();
+                OutsourcedPart outsourcedPart = loader.getController();
+                outsourcedPart.isModify(partSelected);
+                Stage outsourcePartStage = new Stage();
+                outsourcePartStage.setScene(new Scene(root));
+                outsourcePartStage.show();
+            }
         }
     }
 
     @FXML
-    private void onModifyProductClicked(ActionEvent actionEvent) throws IOException {
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("../View/AddProduct.fxml"));
-        FlowPane root = loader.load();
-        AddProduct addProduct = loader.getController();
-        addProduct.isModify(productSelected);
-        Stage addProductStage = new Stage();
-        addProductStage.setScene(new Scene(root));
-        addProductStage.show();
+    private void onModifyProductClicked() throws IOException {
+        if (productSelected != null) {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("../View/AddProduct.fxml"));
+            FlowPane root = loader.load();
+            AddProduct addProduct = loader.getController();
+            addProduct.isModify(productSelected);
+            Stage addProductStage = new Stage();
+            addProductStage.setScene(new Scene(root));
+            addProductStage.show();
+        }
     }
 
     @FXML
-    public void onExit(ActionEvent actionEvent) {
+    public void onExit() {
 
         alert.setTitle("Exit");
         alert.setHeaderText("You are exiting the application. ");
         alert.setContentText("Would you like to proceed? (select OK to proceed exit)");
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
+        if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
                 Platform.exit();
                 System.exit(0);
             } catch (Exception e) {
-                System.out.println(e);
+                e.printStackTrace();
             }
         }
     }
 
     @FXML
-    public void onDeletePart(ActionEvent actionEvent) {
+    public void onDeletePart() {
         if (partSelected != null) {
             alert.setTitle("Delete");
             alert.setHeaderText("You are about to delete " + partSelected.getName());
             alert.setContentText("Are you sure you would like to proceed?");
 
             Optional<ButtonType> result = alert.showAndWait();
-            if (result.get() == ButtonType.OK) {
+            if (result.isPresent() && result.get() == ButtonType.OK) {
                 Inventory.deletePart(partSelected);
             }
         }
@@ -223,14 +176,14 @@ public class MainPage implements Initializable {
 
 
     @FXML
-    public void onDeleteProduct(ActionEvent actionEvent) {
+    public void onDeleteProduct() {
         if (productSelected != null) {
             alert.setTitle("Delete");
             alert.setHeaderText("You are about to delete " + productSelected.getName());
             alert.setContentText("Are you sure you would like to proceed?");
 
             Optional<ButtonType> result = alert.showAndWait();
-            if (result.get() == ButtonType.OK) {
+            if (result.isPresent() && result.get() == ButtonType.OK) {
                 Inventory.deleteProduct(productSelected);
             }
         }
@@ -238,35 +191,32 @@ public class MainPage implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        clmPartID.setCellValueFactory(new PropertyValueFactory<Part, String>("id"));
-        clmPartName.setCellValueFactory(new PropertyValueFactory<Part, String>("name"));
-        clmPrice.setCellValueFactory(new PropertyValueFactory<Part, String>("price"));
-        clmInvLevel.setCellValueFactory(new PropertyValueFactory<Part, String>("stock"));
+        clmPartID.setCellValueFactory(new PropertyValueFactory<>("id"));
+        clmPartName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        clmPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
+        clmInvLevel.setCellValueFactory(new PropertyValueFactory<>("stock"));
 
-        filteredList = new FilteredList<Part>(Inventory.getAIIParts(), part -> true);
+        filteredList = new FilteredList<>(Inventory.getAIIParts(), part -> true);
 
         tblParts.setItems(filteredList);
         tblParts.getSelectionModel().selectedItemProperty().addListener((observableValue, part, t1) -> {
+            System.out.println(observableValue.getValue());
             if (t1 != null) {
-                partSelectedIsInhouse =
-                        Objects.requireNonNull(Inventory.lookupPart(t1.getId())).getClass() == InHouse.class;
-                partSelected = Inventory.lookupPart(t1.getId());
+                partSelectedIsInHouse = t1.getClass() == InHouse.class;
             }
+            partSelected = observableValue.getValue();
+
         });
 
-        clmProductID.setCellValueFactory(new PropertyValueFactory<Product, String>("id"));
-        clmProductName.setCellValueFactory(new PropertyValueFactory<Product, String>("name"));
-        clmProductPrice.setCellValueFactory(new PropertyValueFactory<Product, String>("price"));
-        clmProductInvLevel.setCellValueFactory(new PropertyValueFactory<Product, String>("stock"));
-
-        productFilteredList = new FilteredList<Product>(Inventory.getAIIProducts(), product -> true);
-
+        clmProductID.setCellValueFactory(new PropertyValueFactory<>("id"));
+        clmProductName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        clmProductPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
+        clmProductInvLevel.setCellValueFactory(new PropertyValueFactory<>("stock"));
+        productFilteredList = new FilteredList<>(Inventory.getAIIProducts(), product -> true);
         tblProduct.setItems(productFilteredList);
-
         tblProduct.getSelectionModel().selectedItemProperty().addListener((observableValue, product, t1) -> {
-            if (t1 != null) {
-                productSelected = t1;
-            }
+            productSelected = observableValue.getValue();
         });
     }
 }
+

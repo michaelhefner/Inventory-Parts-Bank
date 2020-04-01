@@ -1,19 +1,17 @@
-/*************************************************************************
- Michael Hefner
- C482 - Software 1
- *************************************************************************/
+/*
+ * Michael Hefner
+ * C482 - Software 1
+ */
+
 
 package com.michaelhefner.Controller;
 
 import com.michaelhefner.Model.Inventory;
 import com.michaelhefner.Model.Part;
 import com.michaelhefner.Model.Product;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -22,9 +20,9 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.net.URL;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.function.Predicate;
 
 public class AddProduct implements Initializable {
 
@@ -39,7 +37,6 @@ public class AddProduct implements Initializable {
     private FilteredList<Part> filteredList;
     private ObservableList<Part> allPartsObservable = FXCollections.observableArrayList();
     private ObservableList<Part> partsToAddToProduct = FXCollections.observableArrayList();
-    private Product newProduct;
 
     private Product productIDToModify;
     @FXML
@@ -82,7 +79,7 @@ public class AddProduct implements Initializable {
     private TableColumn<Part, String> clmAddedPartPrice;
 
     @FXML
-    public void handleSearchPart(ActionEvent actionEvent) {
+    public void handleSearchPart() {
         filteredList.setPredicate(part -> {
             if (txtSearchPart.getText().isEmpty())
                 return true;
@@ -91,7 +88,7 @@ public class AddProduct implements Initializable {
     }
 
     @FXML
-    private void onSaveClicked(ActionEvent actionEvent) {
+    private void onSaveClicked() {
         TextField[] allFields = {txtPrice, txtID, txtInv, txtMax, txtMin, txtProductName, txtPrice};
         TextField[] integerFields = {txtID, txtInv, txtMax, txtMin};
         TextField[] doubleFields = {txtPrice};
@@ -109,13 +106,11 @@ public class AddProduct implements Initializable {
                 tempProduct.addAssociatedPart(part);
             }
             if (productIDToModify != null) {
-
                 Inventory.updateProduct(Inventory.getAIIProducts().indexOf(productIDToModify), tempProduct);
-                stage.close();
             } else {
                 Inventory.addProduct(tempProduct);
-                stage.close();
             }
+            stage.close();
         }
     }
 
@@ -126,29 +121,23 @@ public class AddProduct implements Initializable {
         alert.setContentText("Select OK to proceed");
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
+        if (result.isPresent() && result.get() == ButtonType.OK) {
             Stage stage = (Stage) btnCancel.getScene().getWindow();
             stage.close();
         }
     }
 
     @FXML
-    private void onAddPartClicked(ActionEvent actionEvent) {
-        double totalCost = 0.0;
-        for (Part part : partsToAddToProduct) {
-            totalCost += part.getPrice();
+    private void onAddPartClicked() {
+        if (partSelectedToAdd != -1 && !txtPrice.getText().isEmpty() && Inventory.getAIIParts().size() > partSelectedToAdd) {
+            partsToAddToProduct.add(Inventory.lookupPart(partSelectedToAdd));
         }
-        if (!((partSelectedToAdd >= 0 && !txtPrice.getText().isEmpty())
-                && (totalCost + (Inventory.lookupPart(partSelectedToAdd)).getPrice()) <= Double.parseDouble(txtPrice.getText()))) {
-            txtPrice.setText(Double.toString(totalCost + (Inventory.lookupPart(partSelectedToAdd)).getPrice()));
-        }
-        partsToAddToProduct.add(Inventory.lookupPart(partSelectedToAdd));
 
     }
 
 
     @FXML
-    public void onDeletePart(ActionEvent actionEvent) {
+    public void onDeletePart() {
         if (partSelectedToDelete != -1) {
             Part part = Inventory.lookupPart(partSelectedToDelete);
             alert.setTitle("Delete");
@@ -157,14 +146,14 @@ public class AddProduct implements Initializable {
             alert.setContentText("Are you sure you would like to proceed?");
 
             Optional<ButtonType> result = alert.showAndWait();
-            if (result.get() == ButtonType.OK) {
+            if (result.isPresent() && result.get() == ButtonType.OK) {
                 partsToAddToProduct.remove(part);
             }
         }
     }
 
 
-    private void setTextFieldError(TextField textField){
+    private void setTextFieldError(TextField textField) {
         textField.setStyle(ERROR);
         textField.setText("Invalid Value");
     }
@@ -180,10 +169,10 @@ public class AddProduct implements Initializable {
         isValid &= checkForMinMax(txtMin, txtMax);
         isValid &= checkForMinInv(txtInv);
         isValid &= checkForInvMax(txtInv, txtMax);
-        isValid &= checkForPartsAdded(tblAddedParts);
+        isValid &= checkForPartsAdded(tblAddedParts, txtPrice);
 
 
-        if (!isValid){
+        if (!isValid) {
             Alert invalidTypeAlert = new Alert(Alert.AlertType.CONFIRMATION);
             invalidTypeAlert.setTitle("Invalid Type");
             invalidTypeAlert.setHeaderText("Please check all input fields for correct value.");
@@ -324,14 +313,29 @@ public class AddProduct implements Initializable {
         return isValid;
     }
 
-    private boolean checkForPartsAdded(TableView tableView) {
+    private boolean checkForPartsAdded(TableView tableView, TextField textField) {
         boolean isValid = true;
+
+        double totalCost = 0.0;
+        for (Part part : partsToAddToProduct) {
+            totalCost += part.getPrice();
+        }
         if (tableView.getItems().size() > 0) {
             tableView.setStyle(NO_ERROR);
         } else {
             tableView.setStyle(ERROR);
             isValid = false;
         }
+        try {
+            if (totalCost > Double.parseDouble(textField.getText())) {
+                tableView.setStyle(ERROR);
+                textField.setStyle(ERROR);
+                isValid = false;
+            }
+        }catch (Exception e) {
+
+        }
+
         return isValid;
     }
 
@@ -350,6 +354,7 @@ public class AddProduct implements Initializable {
             }
         }
     }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         int currentIndex = 0;
@@ -365,12 +370,7 @@ public class AddProduct implements Initializable {
         clmToAddPrice.setCellValueFactory(partFactory("price"));
         clmToAddInvLevel.setCellValueFactory(partFactory("stock"));
 
-        filteredList = new FilteredList<Part>(allPartsObservable, new Predicate<Part>() {
-            @Override
-            public boolean test(Part part) {
-                return true;
-            }
-        });
+        filteredList = new FilteredList<>(allPartsObservable, part -> true);
 
         tblToAddParts.setItems(filteredList);
 
@@ -387,12 +387,9 @@ public class AddProduct implements Initializable {
 
         tblAddedParts.setItems(partsToAddToProduct);
 
-        tblAddedParts.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Part>() {
-            @Override
-            public void changed(ObservableValue<? extends Part> observableValue, Part part, Part t1) throws NullPointerException {
-                if (t1 != null) {
-                    partSelectedToDelete = t1.getId();
-                }
+        tblAddedParts.getSelectionModel().selectedItemProperty().addListener((observableValue, part, t1) -> {
+            if (t1 != null) {
+                partSelectedToDelete = t1.getId();
             }
         });
 
@@ -400,7 +397,7 @@ public class AddProduct implements Initializable {
     }
 
     private PropertyValueFactory<Part, String> partFactory(String val) {
-        return new PropertyValueFactory<Part, String>(val);
+        return new PropertyValueFactory<>(val);
     }
 
 
